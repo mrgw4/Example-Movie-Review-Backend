@@ -2,17 +2,10 @@ import { Router, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import * as user from '../services/userServices';
-import { z } from 'zod';
+import { CreateUserSchema } from '../schemas/userSchema';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
-
-// Validation schemas
-const CreateUserSchema = z.object({
-    name: z.string().min(4).max(25),
-    email: z.email(),
-    password: z.string().min(6).max(100)
-});
 
 /**
  * GET /api/users?page=1&limit=20
