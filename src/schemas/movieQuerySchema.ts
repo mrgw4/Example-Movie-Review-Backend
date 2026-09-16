@@ -57,16 +57,12 @@ export const movieQuerySchema = z.object({
     releasedMin: z.coerce.date().optional(),
     releasedMax: z.coerce.date().optional(),
 
-    lastupdatedMin: z.coerce.date().optional(),
-    lastupdatedMax: z.coerce.date().optional(),
-
     // Sorting
     sort: z.enum([
         'title',
         'year',
         'runtime',
         'released',
-        'lastupdated',
         'metacritic',
         'imdbRating',
         'tomatoesMeter',
@@ -84,8 +80,7 @@ export const movieQuerySchema = z.object({
         ['yearMin', 'yearMax'],
         ['tomatoesMeterMin', 'tomatoesMeterMax'],
         ['tomatoesRatingMin', 'tomatoesRatingMax'],
-        ['releasedMin', 'releasedMax'],
-        ['lastupdatedMin', 'lastupdatedMax']
+        ['releasedMin', 'releasedMax']
     ] as const;
 
     for (const [minField, maxField] of ranges) {
