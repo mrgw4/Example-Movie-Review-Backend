@@ -5,6 +5,8 @@ type MovieFilter = Record<string, any>;
 
 /**
  * Builds a MongoDB filter from the validated movie query parameters.
+ * @param query Validated movie query parameters.
+ * @returns MongoDB filter object.
  */
 export function buildMovieFilter(query: MovieQuery): MovieFilter {
     const filter: MovieFilter = {};
@@ -213,6 +215,8 @@ export function buildMovieFilter(query: MovieQuery): MovieFilter {
 
 /**
  * Builds the MongoDB sort object from the validated query parameters.
+ * @param query Validated movie query parameters.
+ * @returns MongoDB sort object.
  */
 export function buildMovieSort(query: MovieQuery) {
     const direction: SortOrder = query.order === 'desc' ? -1 : 1;
