@@ -8,6 +8,8 @@ import {
     updateMovie,
 } from '../services/movieServices';
 import Movie from '../models/Movie';
+import { MovieQuery } from '../schemas/movieQuerySchema';
+import { buildMovieFilter, buildMovieSort } from '../services/queries/movieQuery';
 
 jest.mock('../models/Movie', () => ({
     __esModule: true,
@@ -29,6 +31,27 @@ const mockedMovie = Movie as unknown as {
     findByIdAndDelete: jest.Mock;
     findByIdAndUpdate: jest.Mock;
 };
+
+jest.mock('../services/queries/movieQuery', () => ({
+    __esModule: true,
+    buildMovieFilter: jest.fn(),
+    buildMovieSort: jest.fn(),
+}));
+
+const mockedBuildMovieFilter = jest.mocked(buildMovieFilter);
+const mockedBuildMovieSort = jest.mocked(buildMovieSort);
+
+const mockQuery: MovieQuery = {
+    page: 1,
+    limit: 20,
+
+    title: 'star',
+
+    sort: 'title',
+    order: 'asc'
+};
+
+
 
 describe('movieServices', () => {
     afterEach(() => {
@@ -55,8 +78,7 @@ describe('movieServices', () => {
         expect(result).toEqual(movies);
     });
 
-    // getMoviesWithPagination tests
-    it('returns paginated movies with essential fields sorted by title', async () => {
+    it('returns paginated movies with essential fields using the query filter and sort', async () => {
         const movies = [
             {
                 _id: 'movie-1',
@@ -65,6 +87,17 @@ describe('movieServices', () => {
                 type: 'movie',
             },
         ];
+
+        mockedBuildMovieFilter.mockReturnValue({
+            title: {
+                $regex: 'movie',
+                $options: 'i',
+            },
+        });
+
+        mockedBuildMovieSort.mockReturnValue({
+            'imdb.rating': -1,
+        });
 
         const query = {
             select: jest.fn().mockReturnThis(),
@@ -75,15 +108,19 @@ describe('movieServices', () => {
 
         mockedMovie.find.mockReturnValue(query);
 
-        const result = await getMoviesWithPagination(10, 5);
+        const result = await getMoviesWithPagination(10, 5, mockQuery);
 
-        expect(mockedMovie.find).toHaveBeenCalled();
+        expect(mockedBuildMovieFilter).toHaveBeenCalledWith(mockQuery);
+        expect(mockedBuildMovieSort).toHaveBeenCalledWith(mockQuery);
+
+        expect(mockedMovie.find).toHaveBeenCalledWith({ title: { $regex: 'movie', $options: 'i' } });
         expect(query.select).toHaveBeenCalledWith(
             'title year type poster imdb.rating num_mflix_comments'
         );
         expect(query.skip).toHaveBeenCalledWith(10);
         expect(query.limit).toHaveBeenCalledWith(5);
-        expect(query.sort).toHaveBeenCalledWith({ title: 1 });
+        expect(query.sort).toHaveBeenCalledWith({ 'imdb.rating': -1 });
+
         expect(result).toEqual(movies);
     });
 
@@ -91,7 +128,7 @@ describe('movieServices', () => {
     it('returns the total movie count', async () => {
         mockedMovie.countDocuments.mockResolvedValue(42);
 
-        const result = await getTotalMovieCount();
+        const result = await getTotalMovieCount(mockQuery);
 
         expect(mockedMovie.countDocuments).toHaveBeenCalled();
         expect(result).toBe(42);
