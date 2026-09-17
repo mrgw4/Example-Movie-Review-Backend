@@ -33,6 +33,17 @@ describe('movies route', () => {
     expect(response.body).toEqual({ "data": [movieTestData], "pagination": { "page": 1, "limit": 10, "total": 5, "pages": 1, "hasNextPage": false, "hasPrevPage": false } });
   });
 
+  it('returns 400 when min value is greater than max', async () => {
+
+    mockedServices.getMoviesWithPagination.mockResolvedValue([movieTestData] as any);
+    mockedServices.getTotalMovieCount.mockResolvedValue(5);
+
+    const response = await request(app).get('/api/movies?page=1&limit=10&imdbRatingMin=9&imdbRatingMax=8');
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: 'Invalid query parameters', details: ["imdbRatingMin must be less than or equal to imdbRatingMax"] });
+  });
+
   it('returns 503 when getMoviesWithPagination throws a connect error', async () => {
     mockedServices.getMoviesWithPagination.mockRejectedValue(new Error('connect failed'));
 

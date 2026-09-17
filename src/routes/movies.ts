@@ -1,72 +1,12 @@
 import { Router, Request, Response } from 'express';
 import * as movieService from '../services/movieServices';
 import mongoose from 'mongoose';
-import { z } from 'zod';
 import { verifyAdmin } from '../services/userServices';
+import { MovieSchema } from '../schemas/movieSchema';
+import { movieQuerySchema } from '../schemas/movieQuerySchema';
+import { z } from 'zod';
 
 const router = Router();
-
-const AwardsSchema = z.object({
-  nominations: z.number(),
-  text: z.string(),
-  wins: z.number(),
-});
-
-const ImdbSchema = z.object({
-  id: z.number(),
-  rating: z.union([z.number(), z.string()]),
-  votes: z.union([z.number(), z.string()]),
-});
-
-const TomatoesViewerSchema = z.object({
-  meter: z.number().optional(),
-  numReviews: z.number(),
-  rating: z.number(),
-});
-
-const TomatoesCriticSchema = z.object({
-  meter: z.number(),
-  numReviews: z.number(),
-  rating: z.number(),
-});
-
-const TomatoesSchema = z.object({
-  boxOffice: z.string().optional(),
-  consensus: z.string().optional(),
-  critic: TomatoesCriticSchema.optional(),
-  dvd: z.coerce.date().optional(),
-  fresh: z.number().optional(),
-  lastUpdated: z.coerce.date(),
-  production: z.string().optional(),
-  rotten: z.number().optional(),
-  viewer: TomatoesViewerSchema,
-  website: z.string().optional(),
-});
-
-export const MovieSchema = z.object({
-  awards: AwardsSchema,
-  imdb: ImdbSchema,
-  lastupdated: z.string(),
-  num_mflix_comments: z.number(),
-  title: z.string(),
-  type: z.string(),
-  year: z.union([z.number(), z.string()]),
-
-  cast: z.array(z.string()).optional(),
-  countries: z.array(z.string()).optional(),
-  directors: z.array(z.string()).optional(),
-  fullplot: z.string().optional(),
-  genres: z.array(z.string()).optional(),
-  languages: z.array(z.string()).optional(),
-  metacritic: z.number().optional(),
-  plot: z.string().optional(),
-  poster: z.string().optional(),
-  rated: z.string().optional(),
-  released: z.coerce.date().optional(),
-  runtime: z.number().optional(),
-  tomatoes: TomatoesSchema.optional(),
-  writers: z.array(z.string()).optional(),
-});
 
 /**
  * GET /api/movies?page=1&limit=20
@@ -74,35 +14,51 @@ export const MovieSchema = z.object({
  */
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const limit = Math.min(100, parseInt(req.query.limit as string) || 20);
-    const skip = (page - 1) * limit;
+    const query = movieQuerySchema.parse(req.query);
+
+    const skip = (query.page - 1) * query.limit;
 
     const [movies, total] = await Promise.all([
-      movieService.getMoviesWithPagination(skip, limit),
-      movieService.getTotalMovieCount()
+      movieService.getMoviesWithPagination(
+        skip,
+        query.limit,
+        query
+      ),
+      movieService.getTotalMovieCount(query)
     ]);
 
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = Math.ceil(total / query.limit);
 
     return res.status(200).json({
       data: movies,
       pagination: {
-        page,
-        limit,
+        page: query.page,
+        limit: query.limit,
         total,
         pages: totalPages,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1
+        hasNextPage: query.page < totalPages,
+        hasPrevPage: query.page > 1
       }
     });
   } catch (error) {
-    if (error instanceof Error && error.message.includes('connect')) {
-      return res.status(503).json({ error: 'Database unavailable' });
-    } else {
-      console.error('Error fetching movies:', error);
-      return res.status(500).json({ error: 'Failed to fetch movies' });
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        error: 'Invalid query parameters',
+        details: error.issues.map(issue => issue.message)
+      });
     }
+
+    if (error instanceof Error && error.message.includes('connect')) {
+      return res.status(503).json({
+        error: 'Database unavailable'
+      });
+    }
+
+    console.error('Error fetching movies:', error);
+
+    return res.status(500).json({
+      error: 'Failed to fetch movies'
+    });
   }
 });
 

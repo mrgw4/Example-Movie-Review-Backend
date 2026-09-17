@@ -1,4 +1,6 @@
 import Movie from '../models/Movie';
+import { MovieQuery } from '../schemas/movieQuerySchema';
+import { buildMovieFilter, buildMovieSort } from './queries/movieQuery';
 
 /**
  * Retrieves all movies from the database.
@@ -14,20 +16,30 @@ export async function getAllMovies() {
  * @param limit Number of documents to return.
  * @returns Promise resolving to the list of paginated movies.
  */
-export async function getMoviesWithPagination(skip: number, limit: number) {
-  return Movie.find()
+export async function getMoviesWithPagination(
+  skip: number,
+  limit: number,
+  query: MovieQuery
+) {
+  const filter = buildMovieFilter(query);
+  const sort = buildMovieSort(query);
+
+  return Movie.find(filter)
     .select('title year type poster imdb.rating num_mflix_comments')
     .skip(skip)
     .limit(limit)
-    .sort({ title: 1 });
+    .sort(sort);
 }
 
 /**
- * Retrieves the total count of movies in the database.
- * @returns Promise resolving to the total number of movies.
+ * Retrieves the total count of movies matching the query filters.
+ * @param query Validated movie query parameters.
+ * @returns Promise resolving to the number of matching movies.
  */
-export async function getTotalMovieCount() {
-  return Movie.countDocuments();
+export async function getTotalMovieCount(query: MovieQuery) {
+  const filter = buildMovieFilter(query);
+
+  return Movie.countDocuments(filter);
 }
 
 /**
