@@ -127,7 +127,7 @@ describe('movies route', () => {
   // POST /api/movies tests (create movie)
   it('returns 201 when createMovie succeeds', async () => {
     mockedUserServices.verifyAdmin.mockResolvedValue('507f1f77bcf86cd799439342');
-    mockedServices.createMovie.mockResolvedValue({} as any);
+    mockedServices.createMovie.mockResolvedValue({ movieTestData } as any);
 
     const response = await request(app)
       .post('/api/movies')
@@ -135,7 +135,7 @@ describe('movies route', () => {
       .set('Authorization', 'Bearer valid-token');
 
     expect(response.status).toBe(201);
-    expect(response.body).toEqual({ message: 'Movie created successfully' });
+    expect(response.body).toEqual({ message: 'Movie created successfully', movie: { movieTestData } });
   });
 
   it('returns 400 when required fields are missing', async () => {

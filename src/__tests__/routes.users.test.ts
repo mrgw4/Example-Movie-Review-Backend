@@ -237,7 +237,7 @@ describe('users route', () => {
   });
 
   it('returns 201 when createUser succeeds', async () => {
-    mockedServices.createUser.mockResolvedValue({ id: '1', name: 'Jane Doe' } as any);
+    mockedServices.createUser.mockResolvedValue({ _id: '1', name: 'Jane Doe' } as any);
 
     const response = await request(app).post('/api/users').send({
       name: 'Jane Doe',
@@ -246,7 +246,7 @@ describe('users route', () => {
     });
 
     expect(response.status).toBe(201);
-    expect(response.body).toEqual({ message: 'User created successfully' });
+    expect(response.body).toEqual({ message: 'User created successfully', user: { _id: '1', name: 'Jane Doe' } });
   });
 
   it('returns 503 when the request body fails schema validation', async () => {

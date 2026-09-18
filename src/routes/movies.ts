@@ -156,8 +156,10 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
 
-    await movieService.createMovie(req.body);
-    return res.status(201).json({ message: 'Movie created successfully' });
+    const movie = await movieService.createMovie(req.body);
+
+    return res.status(201).json({ message: 'Movie created successfully', movie: movie });
+
   } catch (error) {
     if (error instanceof Error) {
       if (error instanceof mongoose.Error.ValidationError) {
