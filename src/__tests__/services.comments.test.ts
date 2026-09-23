@@ -202,6 +202,43 @@ describe('commentServices', () => {
         });
     });
 
+    describe('getCommentById', () => {
+        it('returns the comment when it exists', async () => {
+            mockedComment.findById.mockResolvedValue(commentTestData);
 
+            const result = await commentServices.getCommentById(
+                commentTestData._id
+            );
+
+            expect(mockedComment.findById).toHaveBeenCalledWith(
+                commentTestData._id
+            );
+
+            expect(result).toEqual(commentTestData);
+        });
+
+        it('throws when the requested comment does not exist', async () => {
+            mockedComment.findById.mockResolvedValue(null);
+
+            await expect(
+                commentServices.getCommentById(commentTestData._id)
+            ).rejects.toThrow('Comment not found');
+
+
+            expect(mockedComment.findById).toHaveBeenCalledWith(
+                commentTestData._id
+            );
+        });
+
+        it('propagates database errors', async () => {
+            mockedComment.findById.mockRejectedValue(
+                new Error('Database unavailable')
+            );
+
+            await expect(
+                commentServices.getCommentById(commentTestData._id)
+            ).rejects.toThrow('Database unavailable');
+        });
+    });
 
 });
