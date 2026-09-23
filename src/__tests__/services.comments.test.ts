@@ -37,12 +37,12 @@ const mockedUserServices = userServices as unknown as {
 
 jest.mock('../services/movieServices', () => ({
     __esModule: true,
-    getMovieById: jest.fn(),
+    getMovie: jest.fn(),
 }));
 
 
 const mockedMovieServices = movieServices as unknown as {
-    getMovieById: jest.Mock;
+    getMovie: jest.Mock;
 };
 
 const commentTestData = {
@@ -116,7 +116,7 @@ describe('commentServices', () => {
         });
 
         it('returns comments by movie ID', async () => {
-            mockedMovieServices.getMovieById.mockResolvedValue(
+            mockedMovieServices.getMovie.mockResolvedValue(
                 movieTestData
             );
 
@@ -129,7 +129,7 @@ describe('commentServices', () => {
             });
 
             expect(
-                mockedMovieServices.getMovieById
+                mockedMovieServices.getMovie
             ).toHaveBeenCalledWith(movieTestData._id);
 
             expect(mockedComment.find).toHaveBeenCalledWith({
@@ -140,7 +140,7 @@ describe('commentServices', () => {
         });
 
         it('throws when the requested movie does not exist', async () => {
-            mockedMovieServices.getMovieById.mockResolvedValue(null);
+            mockedMovieServices.getMovie.mockResolvedValue(null);
 
             await expect(
                 commentServices.getComments({
@@ -156,7 +156,7 @@ describe('commentServices', () => {
                 userTestData
             );
 
-            mockedMovieServices.getMovieById.mockResolvedValue(
+            mockedMovieServices.getMovie.mockResolvedValue(
                 movieTestData
             );
 
@@ -178,7 +178,7 @@ describe('commentServices', () => {
         });
 
         it('returns an empty array when the filters match no comments', async () => {
-            mockedMovieServices.getMovieById.mockResolvedValue(
+            mockedMovieServices.getMovie.mockResolvedValue(
                 movieTestData
             );
 
