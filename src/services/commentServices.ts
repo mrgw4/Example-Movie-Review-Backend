@@ -10,8 +10,7 @@ import { getMovie } from './movieServices';
  * @throws {Error} when the user or movie does not exist.
  */
 export async function getComments({ userId, movieId }: { userId?: string; movieId?: string }) {
-    // Implementation for retrieving comments based on filters
-    const filter: any = {};
+    const filter: Record<string, unknown> = {};
 
     if (userId) {
         const user = await getUser(userId);
@@ -26,16 +25,17 @@ export async function getComments({ userId, movieId }: { userId?: string; movieI
         if (!movie) {
             throw new Error('Movie not found');
         }
-        filter.movie_id = movie._id;
+        filter.movie_id = movieId;
     }
 
     return Comment.find(filter);
 }
 
 /**
- * gets a comment by its ID.
+ * Gets a comment by its ID.
  * @param commentId The ID of the comment to retrieve.
- * @returns Promise resolving to the requested comment or null if not found.
+ * @returns Promise resolving to the requested comment.
+ * @throws {Error} when the comment does not exist.
  */
 export async function getCommentById(commentId: string) {
     const comment = await Comment.findById(commentId);
