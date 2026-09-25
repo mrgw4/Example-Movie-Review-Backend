@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import mongoose from 'mongoose';
 
-export const CommentSchema = z.object({
+export const commentSchema = z.object({
     text: z.string().min(1).max(500),
     name: z.string().min(1).max(50),
     email: z.string().email(),

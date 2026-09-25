@@ -12,6 +12,8 @@ jest.mock('../models/Comment', () => ({
         create: jest.fn(),
         findByIdAndDelete: jest.fn(),
         findByIdAndUpdate: jest.fn(),
+        skip: jest.fn(),
+        limit: jest.fn
     }
 }));
 
@@ -22,6 +24,8 @@ const mockedComment = Comment as unknown as {
     create: jest.Mock;
     findByIdAndDelete: jest.Mock;
     findByIdAndUpdate: jest.Mock;
+    skip: jest.Mock,
+    limit: jest.Mock
 }
 
 jest.mock('../services/userServices', () => ({
@@ -72,10 +76,14 @@ describe('commentServices', () => {
     describe('getComments', () => {
         it('returns all comments when no filters are provided', async () => {
             mockedComment.find.mockResolvedValue([
-                commentTestData,
+                skip: jest.fn().mockReturnValue({
+                    limit: jest.fn().mockResolvedValue([
+                        commentTestData,
+                    ]),
+                }),
             ]);
 
-            const result = await commentServices.getComments({});
+            const result = await commentServices.getComments({}, 0, 1);
 
             expect(mockedComment.find).toHaveBeenCalledWith({});
             expect(result).toEqual([commentTestData]);
@@ -92,7 +100,7 @@ describe('commentServices', () => {
 
             const result = await commentServices.getComments({
                 userId: userTestData._id,
-            });
+            }, 0, 1);
 
             expect(mockedUserServices.getUser).toHaveBeenCalledWith(userTestData._id);
 
@@ -109,7 +117,7 @@ describe('commentServices', () => {
             await expect(
                 commentServices.getComments({
                     userId: userTestData._id,
-                })
+                }, 0, 1)
             ).rejects.toThrow('User not found');
 
             expect(mockedComment.find).not.toHaveBeenCalled();
@@ -126,7 +134,7 @@ describe('commentServices', () => {
 
             const result = await commentServices.getComments({
                 movieId: movieTestData._id,
-            });
+            }, 0, 1);
 
             expect(
                 mockedMovieServices.getMovie
@@ -145,7 +153,7 @@ describe('commentServices', () => {
             await expect(
                 commentServices.getComments({
                     movieId: movieTestData._id,
-                })
+                }, 0, 1)
             ).rejects.toThrow('Movie not found');
 
             expect(mockedComment.find).not.toHaveBeenCalled();
@@ -167,7 +175,7 @@ describe('commentServices', () => {
             const result = await commentServices.getComments({
                 userId: userTestData._id,
                 movieId: movieTestData._id,
-            });
+            }, 0, 1);
 
             expect(mockedComment.find).toHaveBeenCalledWith({
                 email: userTestData.email,
@@ -186,7 +194,7 @@ describe('commentServices', () => {
 
             const result = await commentServices.getComments({
                 movieId: movieTestData._id,
-            });
+            }, 0, 1);
 
             expect(result).toEqual([]);
         });
@@ -197,7 +205,7 @@ describe('commentServices', () => {
             );
 
             await expect(
-                commentServices.getComments({})
+                commentServices.getComments({}, 0, 1)
             ).rejects.toThrow('Database unavailable');
         });
     });

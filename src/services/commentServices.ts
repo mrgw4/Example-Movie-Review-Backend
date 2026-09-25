@@ -6,10 +6,12 @@ import { getMovie } from './movieServices';
  * Retrieves comments from the database.
  * @param userId Optional user ID to filter comments by user.
  * @param movieId Optional movie ID to filter comments by movie.
+ * @param skip Number of documents to skip.
+ * @param limit Number of documents to return.
  * @returns Promise resolving to the list of all comments matching the provided ids.
  * @throws {Error} when the user or movie does not exist.
  */
-export async function getComments({ userId, movieId }: { userId?: string; movieId?: string }) {
+export async function getComments({ userId, movieId }: { userId?: string; movieId?: string }, skip: number, limit: number) {
     const filter: Record<string, unknown> = {};
 
     if (userId) {
@@ -28,7 +30,7 @@ export async function getComments({ userId, movieId }: { userId?: string; movieI
         filter.movie_id = movieId;
     }
 
-    return Comment.find(filter);
+    return Comment.find(filter).skip(skip).limit(limit);
 }
 
 /**
