@@ -12,8 +12,6 @@ jest.mock('../models/Comment', () => ({
         create: jest.fn(),
         findByIdAndDelete: jest.fn(),
         findByIdAndUpdate: jest.fn(),
-        skip: jest.fn(),
-        limit: jest.fn
     }
 }));
 
@@ -24,8 +22,6 @@ const mockedComment = Comment as unknown as {
     create: jest.Mock;
     findByIdAndDelete: jest.Mock;
     findByIdAndUpdate: jest.Mock;
-    skip: jest.Mock,
-    limit: jest.Mock
 }
 
 jest.mock('../services/userServices', () => ({
@@ -48,6 +44,12 @@ jest.mock('../services/movieServices', () => ({
 const mockedMovieServices = movieServices as unknown as {
     getMovie: jest.Mock;
 };
+
+const mockCommentQuery = (comments: unknown[]) => ({
+    skip: jest.fn().mockReturnValue({
+        limit: jest.fn().mockResolvedValue(comments),
+    }),
+});
 
 const commentTestData = {
     _id: '507f1f77bcf86cd799439011',
@@ -75,13 +77,9 @@ describe('commentServices', () => {
     });
     describe('getComments', () => {
         it('returns all comments when no filters are provided', async () => {
-            mockedComment.find.mockResolvedValue([
-                skip: jest.fn().mockReturnValue({
-                    limit: jest.fn().mockResolvedValue([
-                        commentTestData,
-                    ]),
-                }),
-            ]);
+            mockedComment.find.mockReturnValue(
+                mockCommentQuery([commentTestData])
+            );
 
             const result = await commentServices.getComments({}, 0, 1);
 
@@ -94,9 +92,9 @@ describe('commentServices', () => {
                 userTestData
             );
 
-            mockedComment.find.mockResolvedValue([
-                commentTestData,
-            ]);
+            mockedComment.find.mockReturnValue(
+                mockCommentQuery([commentTestData])
+            );
 
             const result = await commentServices.getComments({
                 userId: userTestData._id,
@@ -128,9 +126,9 @@ describe('commentServices', () => {
                 movieTestData
             );
 
-            mockedComment.find.mockResolvedValue([
-                commentTestData,
-            ]);
+            mockedComment.find.mockReturnValue(
+                mockCommentQuery([commentTestData])
+            );
 
             const result = await commentServices.getComments({
                 movieId: movieTestData._id,
@@ -168,9 +166,9 @@ describe('commentServices', () => {
                 movieTestData
             );
 
-            mockedComment.find.mockResolvedValue([
-                commentTestData,
-            ]);
+            mockedComment.find.mockReturnValue(
+                mockCommentQuery([commentTestData])
+            );
 
             const result = await commentServices.getComments({
                 userId: userTestData._id,
@@ -190,7 +188,7 @@ describe('commentServices', () => {
                 movieTestData
             );
 
-            mockedComment.find.mockResolvedValue([]);
+            mockedComment.find.mockReturnValue(mockCommentQuery([]));
 
             const result = await commentServices.getComments({
                 movieId: movieTestData._id,
@@ -200,9 +198,13 @@ describe('commentServices', () => {
         });
 
         it('propagates database errors', async () => {
-            mockedComment.find.mockRejectedValue(
-                new Error('Database unavailable')
-            );
+            mockedComment.find.mockReturnValue({
+                skip: jest.fn().mockReturnValue({
+                    limit: jest.fn().mockRejectedValue(
+                        new Error('Database unavailable')
+                    ),
+                }),
+            });
 
             await expect(
                 commentServices.getComments({}, 0, 1)
