@@ -251,4 +251,131 @@ describe('commentServices', () => {
         });
     });
 
+    describe('getTotalComments', () => {
+        it('returns the total number of comments when no filters are provided', async () => {
+            mockedComment.countDocuments.mockResolvedValue(10);
+
+            const result = await commentServices.getTotalComments({});
+
+            expect(mockedComment.countDocuments).toHaveBeenCalledWith({});
+            expect(result).toBe(10);
+        });
+
+        it('returns the total number of comments by user ID', async () => {
+            mockedUserServices.getUser.mockResolvedValue(
+                userTestData
+            );
+
+            mockedComment.countDocuments.mockResolvedValue(5);
+
+            const result = await commentServices.getTotalComments({
+                userId: userTestData._id,
+            });
+
+            expect(mockedUserServices.getUser).toHaveBeenCalledWith(
+                userTestData._id
+            );
+
+            expect(mockedComment.countDocuments).toHaveBeenCalledWith({
+                email: userTestData.email,
+            });
+
+            expect(result).toBe(5);
+        });
+
+        it('throws when the requested user does not exist', async () => {
+            mockedUserServices.getUser.mockResolvedValue(null);
+
+            await expect(
+                commentServices.getTotalComments({
+                    userId: userTestData._id,
+                })
+            ).rejects.toThrow('User not found');
+
+            expect(mockedComment.countDocuments).not.toHaveBeenCalled();
+        });
+
+        it('returns the total number of comments by movie ID', async () => {
+            mockedMovieServices.getMovie.mockResolvedValue(
+                movieTestData
+            );
+
+            mockedComment.countDocuments.mockResolvedValue(7);
+
+            const result = await commentServices.getTotalComments({
+                movieId: movieTestData._id,
+            });
+
+            expect(
+                mockedMovieServices.getMovie
+            ).toHaveBeenCalledWith(movieTestData._id);
+
+            expect(mockedComment.countDocuments).toHaveBeenCalledWith({
+                movie_id: movieTestData._id,
+            });
+
+            expect(result).toBe(7);
+        });
+
+        it('throws when the requested movie does not exist', async () => {
+            mockedMovieServices.getMovie.mockResolvedValue(null);
+
+            await expect(
+                commentServices.getTotalComments({
+                    movieId: movieTestData._id,
+                })
+            ).rejects.toThrow('Movie not found');
+
+            expect(mockedComment.countDocuments).not.toHaveBeenCalled();
+        });
+
+        it('returns the total number of comments by both user and movie', async () => {
+            mockedUserServices.getUser.mockResolvedValue(
+                userTestData
+            );
+
+            mockedMovieServices.getMovie.mockResolvedValue(
+                movieTestData
+            );
+
+            mockedComment.countDocuments.mockResolvedValue(3);
+
+            const result = await commentServices.getTotalComments({
+                userId: userTestData._id,
+                movieId: movieTestData._id,
+            });
+
+            expect(mockedComment.countDocuments).toHaveBeenCalledWith({
+                email: userTestData.email,
+                movie_id: movieTestData._id,
+            });
+
+            expect(result).toBe(3);
+        });
+
+        it('returns zero when the filters match no comments', async () => {
+            mockedMovieServices.getMovie.mockResolvedValue(
+                movieTestData
+            );
+
+            mockedComment.countDocuments.mockResolvedValue(0);
+
+            const result = await commentServices.getTotalComments({
+                movieId: movieTestData._id,
+            });
+
+            expect(result).toBe(0);
+        });
+
+        it('propagates database errors', async () => {
+            mockedComment.countDocuments.mockRejectedValue(
+                new Error('Database unavailable')
+            );
+
+            await expect(
+                commentServices.getTotalComments({})
+            ).rejects.toThrow('Database unavailable');
+        });
+    });
+
 });
