@@ -4,6 +4,20 @@ import mongoose from 'mongoose';
 export const commentQuerySchema = z.object({
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(100).default(20),
+    userId: z.string()
+        .refine(
+            (val) => mongoose.Types.ObjectId.isValid(val),
+            {
+                message: 'Invalid user ID',
+            }
+        ).optional(),
+    movieId: z.string()
+        .refine(
+            (val) => mongoose.Types.ObjectId.isValid(val),
+            {
+                message: 'Invalid movie ID',
+            }
+        ).optional(),
 })
 
 export const commentSchema = z.object({

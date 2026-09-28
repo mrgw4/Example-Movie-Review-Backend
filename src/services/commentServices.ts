@@ -3,15 +3,14 @@ import { getUser } from './userServices';
 import { getMovie } from './movieServices';
 
 /**
- * Retrieves comments from the database.
+ * Builds a MongoDB filter for comments based on optional user and movie IDs.
  * @param userId Optional user ID to filter comments by user.
  * @param movieId Optional movie ID to filter comments by movie.
- * @param skip Number of documents to skip.
- * @param limit Number of documents to return.
- * @returns Promise resolving to the list of all comments matching the provided ids.
- * @throws {Error} when the user or movie does not exist.
+ * @returns Promise resolving to a MongoDB comment filter.
+ * @throws {Error} when the specified user or movie does not exist.
  */
-export async function getComments({ userId, movieId }: { userId?: string; movieId?: string }, skip: number, limit: number) {
+async function buildCommentFilter(
+    { userId, movieId, }: { userId?: string; movieId?: string; }) {
     const filter: Record<string, unknown> = {};
 
     if (userId) {
@@ -30,7 +29,43 @@ export async function getComments({ userId, movieId }: { userId?: string; movieI
         filter.movie_id = movieId;
     }
 
+    return filter;
+}
+
+/**
+ * Retrieves comments from the database.
+ * @param userId Optional user ID to filter comments by user.
+ * @param movieId Optional movie ID to filter comments by movie.
+ * @param skip Number of documents to skip.
+ * @param limit Number of documents to return.
+ * @returns Promise resolving to the list of all comments matching the provided ids.
+ * @throws {Error} when the user or movie does not exist.
+ */
+export async function getComments(
+    { userId, movieId }: { userId?: string; movieId?: string },
+    skip: number,
+    limit: number
+) {
+    const filter = await buildCommentFilter({ userId, movieId });
+
     return Comment.find(filter).skip(skip).limit(limit);
+}
+
+
+/**
+ * Retrieves comments from the database matching the provided filters.
+ * @param userId Optional user ID to filter comments by user.
+ * @param movieId Optional movie ID to filter comments by movie.
+ * @param skip Number of documents to skip.
+ * @param limit Number of documents to return.
+ * @returns Promise resolving to the comments matching the provided filters.
+ * @throws {Error} when the specified user or movie does not exist.
+ */
+export async function getTotalComments(
+    { userId, movieId, }: { userId?: string; movieId?: string; }) {
+    const filter = await buildCommentFilter({ userId, movieId });
+
+    return Comment.countDocuments(filter);
 }
 
 /**
