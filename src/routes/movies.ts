@@ -54,8 +54,6 @@ router.get('/', async (req: Request, res: Response) => {
       });
     }
 
-    console.error('Error fetching movies:', error);
-
     return res.status(500).json({
       error: 'Failed to fetch movies'
     });
