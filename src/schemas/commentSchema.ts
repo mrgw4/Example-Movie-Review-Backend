@@ -35,3 +35,7 @@ export const commentSchema = z.object({
 export const commentInputSchema = commentSchema
     .pick({ text: true, movie_id: true })
     .strict();
+
+export const commentUpdateSchema = commentSchema
+    .pick({ text: true })
+    .strict();

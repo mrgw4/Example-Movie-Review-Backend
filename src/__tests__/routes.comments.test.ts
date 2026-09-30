@@ -645,156 +645,232 @@ describe('Comment routes', () => {
         });
     });
 
-    //         describe('PUT /api/comments/:id', () => {
-    //             it('returns 200 when the comment owner updates their comment', async () => {
-    //                 mockedCommentServices.getCommentById.mockResolvedValue(
-    //                     commentTestData
-    //                 );
+    describe('PUT /api/comments/:id', () => {
+        it('returns 200 when the comment owner updates their comment', async () => {
+            mockedCommentServices.getCommentById.mockResolvedValue(commentTestData as any);
+            mockedUserServices.canEditComment.mockResolvedValue(true);
 
-    //                 mockedUserServices.canModifyComment.mockResolvedValue(true);
+            const updatedComment = {
+                ...commentTestData,
+                text: 'Updated comment!',
+            };
 
-    //                 const updatedComment = {
-    //                     ...commentTestData,
-    //                     text: 'Updated comment!',
-    //                 };
+            mockedCommentServices.updateComment.mockResolvedValue(updatedComment as any);
 
-    //                 mockedCommentServices.updateComment.mockResolvedValue(
-    //                     updatedComment
-    //                 );
+            const response = await request(app)
+                .put(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer owner-token')
+                .send({
+                    text: 'Updated comment!',
+                });
 
-    //                 const response = await request(app)
-    //                     .put(`/api/comments/${commentTestData._id}`)
-    //                     .set('Authorization', 'Bearer owner-token')
-    //                     .send({
-    //                         text: 'Updated comment!',
-    //                     });
+            expect(response.status).toBe(200);
+            expect(response.body).toEqual(updatedComment);
+            expect(mockedUserServices.canEditComment).toHaveBeenCalledWith(
+                'owner-token',
+                commentTestData.email
+            );
+            expect(mockedCommentServices.updateComment).toHaveBeenCalledWith(
+                commentTestData._id,
+                { text: 'Updated comment!' }
+            );
+        });
 
-    //                 expect(response.status).toBe(200);
-    //                 expect(response.body).toEqual(updatedComment);
+        it('returns 200 when an admin updates another users comment', async () => {
+            mockedCommentServices.getCommentById.mockResolvedValue(commentTestData as any);
+            mockedUserServices.canEditComment.mockResolvedValue(true);
 
-    //                 expect(
-    //                     mockedUserServices.canModifyComment
-    //                 ).toHaveBeenCalledWith(
-    //                     'owner-token',
-    //                     commentTestData
-    //                 );
+            const updatedComment = {
+                ...commentTestData,
+                text: 'Updated by admin!',
+            };
 
-    //                 expect(
-    //                     mockedCommentServices.updateComment
-    //                 ).toHaveBeenCalledWith(
-    //                     commentTestData._id,
-    //                     {
-    //                         text: 'Updated comment!',
-    //                     }
-    //                 );
-    //             });
+            mockedCommentServices.updateComment.mockResolvedValue(updatedComment as any);
 
-    //             it('returns 200 when an admin updates another users comment', async () => {
-    //                 mockedCommentServices.getCommentById.mockResolvedValue(
-    //                     commentTestData
-    //                 );
+            const response = await request(app)
+                .put(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer admin-token')
+                .send({
+                    text: 'Updated by admin!',
+                });
 
-    //                 mockedUserServices.canModifyComment.mockResolvedValue(true);
+            expect(response.status).toBe(200);
+            expect(response.body).toEqual(updatedComment);
 
-    //                 const updatedComment = {
-    //                     ...commentTestData,
-    //                     text: 'Updated by admin!',
-    //                 };
+            expect(mockedUserServices.canEditComment).toHaveBeenCalledWith(
+                'admin-token',
+                commentTestData.email
+            );
+        });
 
-    //                 mockedCommentServices.updateComment.mockResolvedValue(
-    //                     updatedComment
-    //                 );
+        it('returns 403 when the user is neither the owner nor an admin', async () => {
+            mockedCommentServices.getCommentById.mockResolvedValue(commentTestData as any);
+            mockedUserServices.canEditComment.mockResolvedValue(false);
 
-    //                 const response = await request(app)
-    //                     .put(`/api/comments/${commentTestData._id}`)
-    //                     .set('Authorization', 'Bearer admin-token')
-    //                     .send({
-    //                         text: 'Updated by admin!',
-    //                     });
+            const response = await request(app)
+                .put(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer other-user-token')
+                .send({
+                    text: 'I should not be able to do this',
+                });
 
-    //                 expect(response.status).toBe(200);
-    //                 expect(response.body).toEqual(updatedComment);
+            expect(response.status).toBe(403);
 
-    //                 expect(
-    //                     mockedUserServices.canModifyComment
-    //                 ).toHaveBeenCalledWith(
-    //                     'admin-token',
-    //                     commentTestData
-    //                 );
-    //             });
+            expect(mockedCommentServices.updateComment).not.toHaveBeenCalled();
+        });
 
-    //             it('returns 403 when the user is neither the owner nor an admin', async () => {
-    //                 mockedCommentServices.getCommentById.mockResolvedValue(
-    //                     commentTestData
-    //                 );
+        it('returns 400 for an invalid comment ID', async () => {
+            const response = await request(app)
+                .put('/api/comments/not-an-object-id')
+                .set('Authorization', 'Bearer valid-token')
+                .send({
+                    text: 'Updated comment',
+                });
 
-    //                 mockedUserServices.canModifyComment.mockRejectedValue(
-    //                     new Error('User is not authorized to modify this comment')
-    //                 );
+            expect(response.status).toBe(400);
 
-    //                 const response = await request(app)
-    //                     .put(`/api/comments/${commentTestData._id}`)
-    //                     .set('Authorization', 'Bearer other-user-token')
-    //                     .send({
-    //                         text: 'I should not be able to do this',
-    //                     });
+            expect(mockedCommentServices.getCommentById).not.toHaveBeenCalled();
+            expect(mockedUserServices.canEditComment).not.toHaveBeenCalled();
+        });
 
-    //                 expect(response.status).toBe(403);
+        it('returns 400 when authorization is missing', async () => {
+            const response = await request(app)
+                .put(`/api/comments/${commentTestData._id}`)
+                .send({ text: 'Updated comment' });
 
-    //                 expect(
-    //                     mockedCommentServices.updateComment
-    //                 ).not.toHaveBeenCalled();
-    //             });
+            expect(response.status).toBe(400);
+            expect(response.body).toEqual({ error: 'Authorization token is required' });
+            expect(mockedCommentServices.getCommentById).not.toHaveBeenCalled();
+        });
 
-    //             it('returns 400 for an invalid comment ID', async () => {
-    //                 const response = await request(app)
-    //                     .put('/api/comments/not-an-object-id')
-    //                     .set('Authorization', 'Bearer valid-token')
-    //                     .send({
-    //                         text: 'Updated comment',
-    //                     });
+        it('returns 401 when the authorization format is invalid', async () => {
+            const response = await request(app)
+                .put(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Basic token')
+                .send({ text: 'Updated comment' });
 
-    //                 expect(response.status).toBe(400);
+            expect(response.status).toBe(401);
+            expect(response.body).toEqual({ error: 'Invalid authorization format' });
+        });
 
-    //                 expect(
-    //                     mockedCommentServices.getCommentById
-    //                 ).not.toHaveBeenCalled();
+        it('returns 401 when the Bearer token is empty', async () => {
+            const response = await request(app)
+                .put(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer ')
+                .send({ text: 'Updated comment' });
 
-    //                 expect(
-    //                     mockedUserServices.canModifyComment
-    //                 ).not.toHaveBeenCalled();
-    //             });
+            expect(response.status).toBe(401);
+            expect(response.body).toEqual({ error: 'Invalid token' });
+        });
 
-    //             it('returns 404 when the comment does not exist', async () => {
-    //                 mockedCommentServices.getCommentById.mockResolvedValue(null);
+        it('returns 400 when the update body has no valid fields', async () => {
+            const response = await request(app)
+                .put(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer valid-token')
+                .send({});
 
-    //                 const response = await request(app)
-    //                     .put(`/api/comments/${commentTestData._id}`)
-    //                     .set('Authorization', 'Bearer valid-token')
-    //                     .send({
-    //                         text: 'Updated comment',
-    //                     });
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBe('Invalid comment data');
+            expect(mockedCommentServices.getCommentById).not.toHaveBeenCalled();
+        });
 
-    //                 expect(response.status).toBe(404);
+        it('returns 400 when the update text is invalid', async () => {
+            const response = await request(app)
+                .put(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer valid-token')
+                .send({ text: 12345 });
 
-    //                 expect(
-    //                     mockedUserServices.canModifyComment
-    //                 ).not.toHaveBeenCalled();
-    //             });
+            expect(response.status).toBe(400);
+            expect(response.body).toEqual({
+                error: 'Invalid comment data',
+                details: ['Invalid input: expected string, received number'],
+            });
+            expect(mockedCommentServices.getCommentById).not.toHaveBeenCalled();
+        });
 
-    //             it('returns 400 when no valid fields are supplied', async () => {
-    //                 const response = await request(app)
-    //                     .put(`/api/comments/${commentTestData._id}`)
-    //                     .set('Authorization', 'Bearer valid-token')
-    //                     .send({});
+        it('returns 404 when the requested comment does not exist', async () => {
+            mockedCommentServices.getCommentById.mockRejectedValue(new Error('Comment not found'));
 
-    //                 expect(response.status).toBe(400);
+            const response = await request(app)
+                .put(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer valid-token')
+                .send({
+                    text: 'Updated comment',
+                });
 
-    //                 expect(
-    //                     mockedCommentServices.updateComment
-    //                 ).not.toHaveBeenCalled();
-    //             });
-    //         });
+            expect(response.status).toBe(404);
+            expect(response.body).toEqual({ error: 'Comment not found' });
+            expect(mockedUserServices.canEditComment).not.toHaveBeenCalled();
+        });
+
+        it('returns 401 when the session token is invalid', async () => {
+            mockedCommentServices.getCommentById.mockResolvedValue(commentTestData as any);
+            mockedUserServices.canEditComment.mockRejectedValue(new Error('Invalid token'));
+
+            const response = await request(app)
+                .put(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer invalid-token')
+                .send({ text: 'Updated comment' });
+
+            expect(response.status).toBe(401);
+            expect(response.body).toEqual({ error: 'Invalid token' });
+            expect(mockedCommentServices.updateComment).not.toHaveBeenCalled();
+        });
+
+        it('returns 401 when the session has expired', async () => {
+            mockedCommentServices.getCommentById.mockResolvedValue(commentTestData as any);
+            mockedUserServices.canEditComment.mockRejectedValue(new Error('Token expired'));
+
+            const response = await request(app)
+                .put(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer expired-token')
+                .send({ text: 'Updated comment' });
+
+            expect(response.status).toBe(401);
+            expect(response.body).toEqual({ error: 'Token expired' });
+            expect(mockedCommentServices.updateComment).not.toHaveBeenCalled();
+        });
+
+        it('returns 503 when the database is unavailable', async () => {
+            mockedCommentServices.getCommentById.mockRejectedValue(new Error('connect failed'));
+
+            const response = await request(app)
+                .put(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer valid-token')
+                .send({ text: 'Updated comment' });
+
+            expect(response.status).toBe(503);
+            expect(response.body).toEqual({ error: 'Database unavailable' });
+        });
+
+        it('returns 404 if the comment is deleted before the update completes', async () => {
+            mockedCommentServices.getCommentById.mockResolvedValue(commentTestData as any);
+            mockedUserServices.canEditComment.mockResolvedValue(true);
+            mockedCommentServices.updateComment.mockRejectedValue(new Error('Comment not found'));
+
+            const response = await request(app)
+                .put(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer owner-token')
+                .send({ text: 'Updated comment' });
+
+            expect(response.status).toBe(404);
+            expect(response.body).toEqual({ error: 'Comment not found' });
+        });
+
+        it('returns 500 when updating the comment fails unexpectedly', async () => {
+            mockedCommentServices.getCommentById.mockResolvedValue(commentTestData as any);
+            mockedUserServices.canEditComment.mockResolvedValue(true);
+            mockedCommentServices.updateComment.mockRejectedValue(new Error('Unexpected failure'));
+
+            const response = await request(app)
+                .put(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer owner-token')
+                .send({ text: 'Updated comment' });
+
+            expect(response.status).toBe(500);
+            expect(response.body).toEqual({ error: 'Failed to update comment' });
+        });
+    });
 
     //         describe('DELETE /api/comments/:id', () => {
     //             it('returns 200 when the comment owner deletes their comment', async () => {

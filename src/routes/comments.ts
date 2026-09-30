@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import * as comment from '../services/commentServices';
-import { commentInputSchema, commentQuerySchema, commentSchema } from '../schemas/commentSchema';
+import { commentInputSchema, commentQuerySchema, commentSchema, commentUpdateSchema } from '../schemas/commentSchema';
 import * as user from '../services/userServices';
 import { z } from 'zod';
 import mongoose from 'mongoose';
@@ -169,6 +169,76 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     return res.status(500).json({ error: 'Failed to create comment' });
+  }
+});
+
+/**
+ * PUT /api/comments/:id
+ * Updates a comment when the requester is its author or an admin.
+ */
+router.put('/:id', async (req: Request, res: Response) => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid comment ID' });
+    }
+
+    const rawAuth = req.headers.authorization;
+
+    if (rawAuth === undefined) {
+      return res.status(400).json({ error: 'Authorization token is required' });
+    }
+
+    const authHeader = String(rawAuth).trim();
+
+    if (!/^Bearer\b/i.test(authHeader)) {
+      return res.status(401).json({ error: 'Invalid authorization format' });
+    }
+
+    const token = authHeader.replace(/^Bearer\b/i, '').trim();
+
+    if (token.length === 0) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    const result = commentUpdateSchema.safeParse(req.body);
+
+    if (!result.success) {
+      return res.status(400).json({
+        error: 'Invalid comment data',
+        details: result.error.issues.map(issue => issue.message)
+      });
+    }
+
+    const existingComment = await comment.getCommentById(id);
+    const canEdit = await user.canEditComment(token, existingComment.email);
+
+    if (!canEdit) {
+      return res.status(403).json({ error: 'User is not authorized to edit this comment' });
+    }
+
+    const updatedComment = await comment.updateComment(id, result.data);
+
+    return res.status(200).json(updatedComment);
+  } catch (error) {
+    if (error instanceof Error && (error.message === 'Token expired' || error.message === 'jwt expired')) {
+      return res.status(401).json({ error: 'Token expired' });
+    }
+
+    if (error instanceof Error && (error.message === 'Invalid token' || error.message.includes('jwt'))) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    if (error instanceof Error && error.message.includes('connect')) {
+      return res.status(503).json({ error: 'Database unavailable' });
+    }
+
+    if (error instanceof Error && error.message.includes('not found')) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    return res.status(500).json({ error: 'Failed to update comment' });
   }
 });
 
