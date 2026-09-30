@@ -66,6 +66,26 @@ describe('users route', () => {
     expect(response.body.user).toEqual({ id: 'user-1', name: 'Jane Doe', email: 'test@example.com' });
   });
 
+  it('uses the user id fallback when the login record has no _id', async () => {
+    mockedServices.loginUser.mockResolvedValue({
+      id: 'fallback-user-id',
+      name: 'Jane Doe',
+      email: 'test@example.com',
+    } as any);
+
+    const response = await request(app).post('/api/users/login').send({
+      email: 'test@example.com',
+      password: 'password',
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.user.id).toBe('fallback-user-id');
+    expect(mockedServices.createSession).toHaveBeenCalledWith(
+      'fallback-user-id',
+      response.body.token
+    );
+  });
+
   it('returns 400 when login credentials are missing', async () => {
     const response = await request(app).post('/api/users/login').send({ email: 'test@example.com' });
 
@@ -209,6 +229,30 @@ describe('users route', () => {
     expect(response.body).toEqual({ _id: 'user-1', name: 'Jane Doe' });
   });
 
+  it('serializes a Mongoose user document before removing its password', async () => {
+    const userDocument = {
+      toObject: jest.fn().mockReturnValue({
+        _id: 'user-1',
+        name: 'Jane Doe',
+        email: 'test@example.com',
+        password: 'hashed-password',
+      }),
+    };
+    mockedServices.getUser.mockResolvedValue(userDocument as any);
+
+    const response = await request(app)
+      .get('/api/users/507f1f77bcf86cd799439011')
+      .set('Authorization', 'Bearer valid-token');
+
+    expect(response.status).toBe(200);
+    expect(userDocument.toObject).toHaveBeenCalled();
+    expect(response.body).toEqual({
+      _id: 'user-1',
+      name: 'Jane Doe',
+      email: 'test@example.com',
+    });
+  });
+
   it('returns email for a single-user response with a valid token', async () => {
     mockedServices.getUser.mockResolvedValue({ _id: 'user-1', name: 'Jane Doe', email: 'test@example.com' } as any);
     const token = jwt.sign({ id: 'user-1' }, 'dev-secret', { expiresIn: '1h' });
@@ -311,6 +355,22 @@ describe('users route', () => {
     expect(response.status).toBe(200);
     expect(response.body.message).toBe('User updated successfully');
     expect(response.body.user.name).toBe('Updated Name');
+  });
+
+  it('uses the user id fallback when the updated record has no _id', async () => {
+    mockedServices.updateUser.mockResolvedValue({
+      id: 'fallback-user-id',
+      name: 'Updated Name',
+      email: 'test@example.com',
+    } as any);
+
+    const response = await request(app)
+      .put('/api/users/507f1f77bcf86cd799439011')
+      .set('Authorization', 'Bearer valid-token')
+      .send({ name: 'Updated Name' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.user.id).toBe('fallback-user-id');
   });
 
   it('returns 400 when update has no authorization header', async () => {

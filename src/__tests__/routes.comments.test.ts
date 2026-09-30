@@ -512,6 +512,20 @@ describe('Comment routes', () => {
             expect(mockedUserServices.verifySessionToken).not.toHaveBeenCalled();
         });
 
+        it('returns 401 when the Bearer authorization header has no token', async () => {
+            const response = await request(app)
+                .post('/api/comments')
+                .set('Authorization', 'Bearer ')
+                .send({
+                    movie_id: commentTestData.movie_id,
+                    text: commentTestData.text,
+                });
+
+            expect(response.status).toBe(401);
+            expect(response.body).toEqual({ error: 'Invalid token' });
+            expect(mockedUserServices.verifySessionToken).not.toHaveBeenCalled();
+        });
+
         it('returns 401 when the session token is invalid', async () => {
             mockedUserServices.verifySessionToken.mockRejectedValue(new Error('Invalid token'));
 
@@ -611,6 +625,23 @@ describe('Comment routes', () => {
 
             expect(response.status).toBe(503);
             expect(response.body).toEqual({ error: 'Database unavailable' });
+        });
+
+        it('returns 500 when comment creation fails unexpectedly', async () => {
+            mockedCommentServices.createComment.mockRejectedValue(
+                new Error('Unexpected create failure')
+            );
+
+            const response = await request(app)
+                .post('/api/comments')
+                .set('Authorization', 'Bearer valid-token')
+                .send({
+                    movie_id: commentTestData.movie_id,
+                    text: commentTestData.text,
+                });
+
+            expect(response.status).toBe(500);
+            expect(response.body).toEqual({ error: 'Failed to create comment' });
         });
     });
 

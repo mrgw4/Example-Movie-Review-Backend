@@ -139,8 +139,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<Response | void>
     }
 
     try {
-        const rawAuth = req.headers.authorization ?? '';
-        const authHeader = typeof rawAuth === 'string' ? rawAuth : String(rawAuth);
+        const authHeader = req.headers.authorization ?? '';
         const token = authHeader.replace(/^\s*Bearer\s+/i, '').trim();
         let isVerified = false;
 
