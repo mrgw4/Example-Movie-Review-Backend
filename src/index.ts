@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import userRouter from './routes/users';
 import movieRouter from './routes/movies';
+import commentRouter from './routes/comments'
 import testResetHandler from './testhelper/testResetHandler';
 
 
@@ -35,7 +36,7 @@ export async function connectDB(): Promise<void> {
         console.error('MongoDB connection failed:', error);
         throw error;
     }
-}   
+}
 
 // Routes
 app.get('/health', (_req: Request, res: Response) => {
@@ -44,6 +45,7 @@ app.get('/health', (_req: Request, res: Response) => {
 
 app.use('/api/users', userRouter);
 app.use('/api/movies', movieRouter);
+app.use('/api/comments', commentRouter)
 app.use('/api/testreset', testResetHandler);
 
 /**
