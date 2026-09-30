@@ -318,6 +318,37 @@ describe('commentServices', () => {
         });
     });
 
+    describe('deleteComment', () => {
+        it('deletes and returns the comment', async () => {
+            mockedComment.findByIdAndDelete.mockResolvedValue(commentTestData);
+
+            const result = await commentServices.deleteComment(commentTestData._id);
+
+            expect(mockedComment.findByIdAndDelete).toHaveBeenCalledWith(
+                commentTestData._id
+            );
+            expect(result).toEqual(commentTestData);
+        });
+
+        it('throws when the comment does not exist', async () => {
+            mockedComment.findByIdAndDelete.mockResolvedValue(null);
+
+            await expect(
+                commentServices.deleteComment(commentTestData._id)
+            ).rejects.toThrow('Comment not found');
+        });
+
+        it('propagates database errors', async () => {
+            mockedComment.findByIdAndDelete.mockRejectedValue(
+                new Error('Database unavailable')
+            );
+
+            await expect(
+                commentServices.deleteComment(commentTestData._id)
+            ).rejects.toThrow('Database unavailable');
+        });
+    });
+
     describe('getTotalComments', () => {
         it('returns the total number of comments when no filters are provided', async () => {
             mockedComment.countDocuments.mockResolvedValue(10);

@@ -119,3 +119,19 @@ export async function updateComment(
 
     return updatedComment;
 }
+
+/**
+ * Deletes a comment by its ID.
+ * @param commentId The ID of the comment to delete.
+ * @returns Promise resolving to the deleted comment.
+ * @throws {Error} when the comment does not exist.
+ */
+export async function deleteComment(commentId: string) {
+    const deletedComment = await Comment.findByIdAndDelete(commentId);
+
+    if (!deletedComment) {
+        throw new Error('Comment not found');
+    }
+
+    return deletedComment;
+}
