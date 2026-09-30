@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import * as comment from '../services/commentServices';
 import { commentQuerySchema } from '../schemas/commentSchema';
 import { z } from 'zod';
+import mongoose from 'mongoose';
 
 const router = Router();
 
@@ -62,6 +63,34 @@ router.get('/', async (req: Request, res: Response) => {
     return res.status(500).json({
       error: 'Failed to fetch comments'
     });
+  }
+});
+
+/**
+ * GET /api/comments/:id
+ * Returns a single comment by ID.
+ */
+router.get('/:id', async (req: Request, res: Response) => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid comment ID' });
+    }
+
+    const requestedComment = await comment.getCommentById(id);
+
+    return res.status(200).json(requestedComment);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('connect')) {
+      return res.status(503).json({ error: 'Database unavailable' });
+    }
+
+    if (error instanceof Error && error.message.includes('not found')) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    return res.status(500).json({ error: 'Failed to fetch comment' });
   }
 });
 
