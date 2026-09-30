@@ -95,3 +95,27 @@ export async function createComment(commentData: {
 }) {
     return Comment.create(commentData);
 }
+
+/**
+ * Updates a comment by its ID.
+ * @param commentId The ID of the comment to update.
+ * @param updateData The fields to update on the comment.
+ * @returns Promise resolving to the updated comment.
+ * @throws {Error} when the comment does not exist.
+ */
+export async function updateComment(
+    commentId: string,
+    updateData: { text: string }
+) {
+    const updatedComment = await Comment.findByIdAndUpdate(
+        commentId,
+        updateData,
+        { new: true, runValidators: true }
+    );
+
+    if (!updatedComment) {
+        throw new Error('Comment not found');
+    }
+
+    return updatedComment;
+}

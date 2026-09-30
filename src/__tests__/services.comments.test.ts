@@ -279,6 +279,45 @@ describe('commentServices', () => {
         });
     });
 
+    describe('updateComment', () => {
+        const updateData = { text: 'Updated comment text' };
+
+        it('updates and returns the comment', async () => {
+            const updatedComment = { ...commentTestData, ...updateData };
+            mockedComment.findByIdAndUpdate.mockResolvedValue(updatedComment);
+
+            const result = await commentServices.updateComment(
+                commentTestData._id,
+                updateData
+            );
+
+            expect(mockedComment.findByIdAndUpdate).toHaveBeenCalledWith(
+                commentTestData._id,
+                updateData,
+                { new: true, runValidators: true }
+            );
+            expect(result).toEqual(updatedComment);
+        });
+
+        it('throws when the comment does not exist', async () => {
+            mockedComment.findByIdAndUpdate.mockResolvedValue(null);
+
+            await expect(
+                commentServices.updateComment(commentTestData._id, updateData)
+            ).rejects.toThrow('Comment not found');
+        });
+
+        it('propagates database errors', async () => {
+            mockedComment.findByIdAndUpdate.mockRejectedValue(
+                new Error('Database unavailable')
+            );
+
+            await expect(
+                commentServices.updateComment(commentTestData._id, updateData)
+            ).rejects.toThrow('Database unavailable');
+        });
+    });
+
     describe('getTotalComments', () => {
         it('returns the total number of comments when no filters are provided', async () => {
             mockedComment.countDocuments.mockResolvedValue(10);
