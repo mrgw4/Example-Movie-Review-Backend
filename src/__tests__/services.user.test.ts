@@ -1,9 +1,10 @@
-import { createUser, getAllUsers, loginUser, createSession, verifySessionToken, deleteSessionToken, getUser, updateUser, changePassword, deleteUser, getUsersWithPagination, getTotalUserCount, verifyAdmin } from '../services/userServices';
+import { createUser, getAllUsers, loginUser, createSession, verifySessionToken, deleteSessionToken, getUser, updateUser, changePassword, deleteUser, getUsersWithPagination, getTotalUserCount, verifyAdmin, canEditComment } from '../services/userServices';
 import User from '../models/User';
 import Session from '../models/Session';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import Admin from '../models/Admin';
+import Comment from '../models/Comment';
 import mongoose from 'mongoose';
 
 jest.mock('../models/User', () => ({
@@ -37,6 +38,13 @@ jest.mock('../models/Admin', () => ({
   },
 }));
 
+jest.mock('../models/Comment', () => ({
+  __esModule: true,
+  default: {
+    updateMany: jest.fn(),
+  },
+}));
+
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),
   compare: jest.fn(),
@@ -67,6 +75,10 @@ const mockedBcrypt = bcrypt as unknown as {
 
 const mockedAdmin = Admin as unknown as {
   findOne: jest.Mock;
+};
+
+const mockedComment = Comment as unknown as {
+  updateMany: jest.Mock;
 };
 
 describe('userServices', () => {
@@ -305,13 +317,72 @@ describe('userServices', () => {
     const user = { _id: 'user-1', name: 'Jane Doe', email: 'old@example.com', save: jest.fn().mockResolvedValue({ _id: 'user-1', name: 'Jane Doe', email: 'new@example.com' }) };
     mockedUser.findById.mockResolvedValue(user);
     mockedUser.findOne.mockResolvedValue(null);
+    mockedComment.updateMany.mockResolvedValue({ modifiedCount: 2 });
 
     const result = await updateUser('user-1', { email: 'new@example.com' });
 
     expect(mockedUser.findById).toHaveBeenCalledWith('user-1');
     expect(mockedUser.findOne).toHaveBeenCalledWith({ email: 'new@example.com' });
+    expect(mockedComment.updateMany).toHaveBeenCalledWith(
+      { email: 'old@example.com' },
+      { $set: { email: 'new@example.com' } }
+    );
     expect(user.save).toHaveBeenCalled();
     expect(result.email).toBe('new@example.com');
+  });
+
+  it('does not update comments when the email is unchanged', async () => {
+    const user = { _id: 'user-1', name: 'Jane Doe', email: 'same@example.com', save: jest.fn().mockResolvedValue({ email: 'same@example.com' }) };
+    mockedUser.findById.mockResolvedValue(user);
+
+    await updateUser('user-1', { email: 'same@example.com' });
+
+    expect(mockedUser.findOne).not.toHaveBeenCalled();
+    expect(mockedComment.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('restores comment emails if saving the user fails', async () => {
+    const saveError = new Error('User save failed');
+    const user = {
+      _id: 'user-1',
+      name: 'Jane Doe',
+      email: 'old@example.com',
+      save: jest.fn().mockRejectedValue(saveError),
+    };
+    mockedUser.findById.mockResolvedValue(user);
+    mockedUser.findOne.mockResolvedValue(null);
+    mockedComment.updateMany.mockResolvedValue({ modifiedCount: 2 });
+
+    await expect(updateUser('user-1', { email: 'new@example.com' }))
+      .rejects.toThrow('User save failed');
+
+    expect(mockedComment.updateMany).toHaveBeenNthCalledWith(
+      1,
+      { email: 'old@example.com' },
+      { $set: { email: 'new@example.com' } }
+    );
+    expect(mockedComment.updateMany).toHaveBeenNthCalledWith(
+      2,
+      { email: 'new@example.com' },
+      { $set: { email: 'old@example.com' } }
+    );
+    expect(user.email).toBe('old@example.com');
+  });
+
+  it('does not roll back comment emails when a non-email user update fails', async () => {
+    const user = {
+      _id: 'user-1',
+      name: 'Old Name',
+      email: 'same@example.com',
+      save: jest.fn().mockRejectedValue(new Error('User save failed')),
+    };
+    mockedUser.findById.mockResolvedValue(user);
+
+    await expect(updateUser('user-1', { name: 'New Name' }))
+      .rejects.toThrow('User save failed');
+
+    expect(mockedComment.updateMany).not.toHaveBeenCalled();
+    expect(user.email).toBe('same@example.com');
   });
 
   it('throws when updating email to one that already exists', async () => {
@@ -479,5 +550,94 @@ describe('userServices', () => {
       .toThrow('Database connection failed');
 
     expect(mockedAdmin.findOne).toHaveBeenCalledWith({ userId });
+  });
+
+  describe('canEditComment', () => {
+    const createToken = (userId: string, email: string) => jwt.sign(
+      { id: userId, email },
+      'dev-secret',
+      { expiresIn: '1h' }
+    );
+
+    const mockActiveSession = () => mockedSession.findOne.mockResolvedValue({
+      createdAt: new Date(),
+      _id: 'session-1',
+    });
+
+    it('allows the comment author', async () => {
+      const userId = new mongoose.Types.ObjectId();
+      const token = createToken(userId.toString(), 'old@example.com');
+      mockActiveSession();
+      mockedUser.findById.mockResolvedValue({ email: 'author@example.com' });
+
+      const result = await canEditComment(token, 'author@example.com');
+
+      expect(result).toBe(true);
+      expect(mockedSession.findOne).toHaveBeenCalledWith({ jwt: token });
+      expect(mockedUser.findById).toHaveBeenCalledWith(userId.toString());
+      expect(mockedAdmin.findOne).not.toHaveBeenCalled();
+    });
+
+    it('allows an admin who is not the comment author', async () => {
+      const userId = new mongoose.Types.ObjectId();
+      const token = createToken(userId.toString(), 'admin@example.com');
+      mockActiveSession();
+      mockedUser.findById.mockResolvedValue({ email: 'admin@example.com' });
+      mockedAdmin.findOne.mockResolvedValue({ userId });
+
+      const result = await canEditComment(token, 'author@example.com');
+
+      expect(result).toBe(true);
+      expect(mockedAdmin.findOne).toHaveBeenCalledWith({ userId });
+    });
+
+    it('denies a valid user who is neither the author nor an admin', async () => {
+      const userId = new mongoose.Types.ObjectId();
+      const token = createToken(userId.toString(), 'other@example.com');
+      mockActiveSession();
+      mockedUser.findById.mockResolvedValue({ email: 'other@example.com' });
+      mockedAdmin.findOne.mockResolvedValue(null);
+
+      const result = await canEditComment(token, 'author@example.com');
+
+      expect(result).toBe(false);
+      expect(mockedAdmin.findOne).toHaveBeenCalledWith({ userId });
+    });
+
+    it('rejects an invalid session token', async () => {
+      mockedSession.findOne.mockResolvedValue(null);
+
+      await expect(canEditComment('invalid-token', 'author@example.com'))
+        .rejects.toThrow('Invalid token');
+
+      expect(mockedAdmin.findOne).not.toHaveBeenCalled();
+    });
+
+    it('rejects an expired session token', async () => {
+      const userId = new mongoose.Types.ObjectId();
+      const token = createToken(userId.toString(), 'author@example.com');
+      mockedSession.findOne.mockResolvedValue({
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+        _id: 'session-1',
+      });
+      mockedSession.deleteOne.mockResolvedValue({});
+
+      await expect(canEditComment(token, 'author@example.com'))
+        .rejects.toThrow('Token expired');
+
+      expect(mockedSession.deleteOne).toHaveBeenCalledWith({ _id: 'session-1' });
+      expect(mockedAdmin.findOne).not.toHaveBeenCalled();
+    });
+
+    it('propagates errors from the admin lookup', async () => {
+      const userId = new mongoose.Types.ObjectId();
+      const token = createToken(userId.toString(), 'other@example.com');
+      mockActiveSession();
+      mockedUser.findById.mockResolvedValue({ email: 'other@example.com' });
+      mockedAdmin.findOne.mockRejectedValue(new Error('Database connection failed'));
+
+      await expect(canEditComment(token, 'author@example.com'))
+        .rejects.toThrow('Database connection failed');
+    });
   });
 });
