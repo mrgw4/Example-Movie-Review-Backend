@@ -305,12 +305,40 @@ describe('userServices', () => {
   it('updates user name successfully', async () => {
     const user = { _id: 'user-1', name: 'Old Name', email: 'test@example.com', save: jest.fn().mockResolvedValue({ _id: 'user-1', name: 'New Name', email: 'test@example.com' }) };
     mockedUser.findById.mockResolvedValue(user);
+    mockedComment.updateMany.mockResolvedValue({ modifiedCount: 2 });
 
     const result = await updateUser('user-1', { name: 'New Name' });
 
     expect(mockedUser.findById).toHaveBeenCalledWith('user-1');
+    expect(mockedComment.updateMany).toHaveBeenCalledWith(
+      { email: 'test@example.com' },
+      { $set: { name: 'New Name' } }
+    );
     expect(user.save).toHaveBeenCalled();
     expect(result.name).toBe('New Name');
+  });
+
+  it('updates comment name and email together when both user fields change', async () => {
+    const user = {
+      _id: 'user-1',
+      name: 'Old Name',
+      email: 'old@example.com',
+      save: jest.fn().mockResolvedValue({
+        _id: 'user-1',
+        name: 'New Name',
+        email: 'new@example.com',
+      }),
+    };
+    mockedUser.findById.mockResolvedValue(user);
+    mockedUser.findOne.mockResolvedValue(null);
+    mockedComment.updateMany.mockResolvedValue({ modifiedCount: 2 });
+
+    await updateUser('user-1', { name: 'New Name', email: 'new@example.com' });
+
+    expect(mockedComment.updateMany).toHaveBeenCalledWith(
+      { email: 'old@example.com' },
+      { $set: { name: 'New Name', email: 'new@example.com' } }
+    );
   });
 
   it('updates user email successfully', async () => {
@@ -341,6 +369,22 @@ describe('userServices', () => {
     expect(mockedComment.updateMany).not.toHaveBeenCalled();
   });
 
+  it('does not update comments or attempt rollback when a supplied name is unchanged', async () => {
+    const user = {
+      _id: 'user-1',
+      name: 'Same Name',
+      email: 'same@example.com',
+      save: jest.fn().mockRejectedValue(new Error('User save failed')),
+    };
+    mockedUser.findById.mockResolvedValue(user);
+
+    await expect(updateUser('user-1', { name: 'Same Name' }))
+      .rejects.toThrow('User save failed');
+
+    expect(mockedComment.updateMany).not.toHaveBeenCalled();
+    expect(user.name).toBe('Same Name');
+  });
+
   it('restores comment emails if saving the user fails', async () => {
     const saveError = new Error('User save failed');
     const user = {
@@ -369,7 +413,7 @@ describe('userServices', () => {
     expect(user.email).toBe('old@example.com');
   });
 
-  it('does not roll back comment emails when a non-email user update fails', async () => {
+  it('restores comment names when saving a name-only user update fails', async () => {
     const user = {
       _id: 'user-1',
       name: 'Old Name',
@@ -377,11 +421,22 @@ describe('userServices', () => {
       save: jest.fn().mockRejectedValue(new Error('User save failed')),
     };
     mockedUser.findById.mockResolvedValue(user);
+    mockedComment.updateMany.mockResolvedValue({ modifiedCount: 2 });
 
     await expect(updateUser('user-1', { name: 'New Name' }))
       .rejects.toThrow('User save failed');
 
-    expect(mockedComment.updateMany).not.toHaveBeenCalled();
+    expect(mockedComment.updateMany).toHaveBeenNthCalledWith(
+      1,
+      { email: 'same@example.com' },
+      { $set: { name: 'New Name' } }
+    );
+    expect(mockedComment.updateMany).toHaveBeenNthCalledWith(
+      2,
+      { email: 'same@example.com' },
+      { $set: { name: 'Old Name' } }
+    );
+    expect(user.name).toBe('Old Name');
     expect(user.email).toBe('same@example.com');
   });
 

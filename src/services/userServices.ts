@@ -224,31 +224,46 @@ export async function updateUser(userId: string, updateData: { name?: string; em
         }
     }
 
+    const previousName = user.name;
     const previousEmail = user.email;
-    const emailChanged = updateData.email && updateData.email !== previousEmail;
+    const commentUpdates: { name?: string; email?: string } = {};
 
     if (updateData.name) {
         user.name = updateData.name;
+        if (updateData.name !== previousName) {
+            commentUpdates.name = updateData.name;
+        }
     }
     if (updateData.email) {
         user.email = updateData.email;
+        if (updateData.email !== previousEmail) {
+            commentUpdates.email = updateData.email;
+        }
     }
 
-    if (emailChanged) {
+    if (Object.keys(commentUpdates).length > 0) {
         await Comment.updateMany(
             { email: previousEmail },
-            { $set: { email: updateData.email } }
+            { $set: commentUpdates }
         );
     }
 
     try {
         return await user.save();
     } catch (error) {
-        if (emailChanged) {
+        if (Object.keys(commentUpdates).length > 0) {
+            user.name = previousName;
             user.email = previousEmail;
+            const commentRollback: { name?: string; email?: string } = {};
+            if (commentUpdates.name) {
+                commentRollback.name = previousName;
+            }
+            if (commentUpdates.email) {
+                commentRollback.email = previousEmail;
+            }
             await Comment.updateMany(
-                { email: updateData.email },
-                { $set: { email: previousEmail } }
+                { email: commentUpdates.email ?? previousEmail },
+                { $set: commentRollback }
             );
         }
 
