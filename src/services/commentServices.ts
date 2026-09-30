@@ -81,3 +81,17 @@ export async function getCommentById(commentId: string) {
     }
     return comment;
 }
+
+/**
+ * Creates a new comment.
+ * @param commentData The validated comment data.
+ * @returns Promise resolving to the created comment.
+ */
+export async function createComment(commentData: {
+    name: string;
+    email: string;
+    movie_id: string;
+    text: string;
+}) {
+    return Comment.create(commentData);
+}

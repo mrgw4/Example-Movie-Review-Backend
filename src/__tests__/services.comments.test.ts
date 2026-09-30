@@ -59,6 +59,13 @@ const commentTestData = {
     text: 'This is a great movie!',
 };
 
+const newCommentData = {
+    name: 'Jane Doe',
+    email: 'jane@example.com',
+    movie_id: '507f1f77bcf86cd799439012',
+    text: 'This is a great movie!',
+};
+
 const userTestData = {
     _id: '507f1f77bcf86cd799439056',
     name: 'Jane Doe',
@@ -251,6 +258,27 @@ describe('commentServices', () => {
         });
     });
 
+    describe('createComment', () => {
+        it('creates and returns a comment', async () => {
+            mockedComment.create.mockResolvedValue(commentTestData);
+
+            const result = await commentServices.createComment(newCommentData);
+
+            expect(mockedComment.create).toHaveBeenCalledWith(newCommentData);
+            expect(result).toEqual(commentTestData);
+        });
+
+        it('propagates database errors', async () => {
+            mockedComment.create.mockRejectedValue(
+                new Error('Database unavailable')
+            );
+
+            await expect(
+                commentServices.createComment(newCommentData)
+            ).rejects.toThrow('Database unavailable');
+        });
+    });
+
     describe('getTotalComments', () => {
         it('returns the total number of comments when no filters are provided', async () => {
             mockedComment.countDocuments.mockResolvedValue(10);
@@ -377,5 +405,7 @@ describe('commentServices', () => {
             ).rejects.toThrow('Database unavailable');
         });
     });
+
+
 
 });
