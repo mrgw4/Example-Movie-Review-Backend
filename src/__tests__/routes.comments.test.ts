@@ -3,12 +3,16 @@ import request from 'supertest';
 
 import commentRouter from '../routes/comments';
 import * as commentServices from '../services/commentServices';
+import * as userServices from '../services/userServices';
+
 
 jest.mock('../services/commentServices');
 jest.mock('../services/userServices');
 
 const mockedCommentServices =
     commentServices as jest.Mocked<typeof commentServices>;
+const mockedUserServices =
+    userServices as jest.Mocked<typeof userServices>;
 
 const app: Express = express();
 
@@ -24,6 +28,11 @@ const commentTestData = {
 };
 
 const validId = '507f1f77bcf86cd799439011';
+const authenticatedUser = {
+    _id: '507f1f77bcf86cd799439013',
+    name: 'Jane Doe',
+    email: 'jane@example.com',
+};
 
 describe('Comment routes', () => {
     beforeEach(() => {
@@ -398,96 +407,212 @@ describe('Comment routes', () => {
             });
         });
     });
-    //         describe('POST /api/comments', () => {
-    //             it('returns 201 when a comment is created', async () => {
-    //                 mockedUserServices.verifySessionToken.mockResolvedValue({
-    //                     userId: '507f1f77bcf86cd799439013',
-    //                     email: commentTestData.email,
-    //                     session: {} as any,
-    //                 });
+    describe('POST /api/comments', () => {
+        beforeEach(() => {
+            mockedUserServices.verifySessionToken.mockResolvedValue({
+                userId: authenticatedUser._id,
+                email: authenticatedUser.email,
+                session: {} as any,
+            });
+            mockedUserServices.getUser.mockResolvedValue(authenticatedUser as any);
+        });
 
-    //                 mockedCommentServices.createComment.mockResolvedValue(
-    //                     commentTestData
-    //                 );
+        it('creates a comment using identity from the authenticated user', async () => {
+            mockedCommentServices.createComment.mockResolvedValue(commentTestData as any);
 
-    //                 const response = await request(app)
-    //                     .post('/api/comments')
-    //                     .set('Authorization', 'Bearer valid-token')
-    //                     .send({
-    //                         name: commentTestData.name,
-    //                         email: commentTestData.email,
-    //                         movie_id: commentTestData.movie_id,
-    //                         text: commentTestData.text,
-    //                     });
+            const response = await request(app)
+                .post('/api/comments')
+                .set('Authorization', 'Bearer valid-token')
+                .send({
+                    movie_id: commentTestData.movie_id,
+                    text: commentTestData.text,
+                });
 
-    //                 expect(response.status).toBe(201);
-    //                 expect(response.body).toEqual({
-    //                     message: 'Comment created successfully',
-    //                     comment: commentTestData,
-    //                 });
+            expect(response.status).toBe(201);
+            expect(response.body).toEqual({
+                message: 'Comment created successfully',
+                comment: commentTestData,
+            });
+            expect(mockedUserServices.verifySessionToken).toHaveBeenCalledWith('valid-token');
+            expect(mockedUserServices.getUser).toHaveBeenCalledWith(authenticatedUser._id);
+            expect(mockedCommentServices.createComment).toHaveBeenCalledWith({
+                name: authenticatedUser.name,
+                email: authenticatedUser.email,
+                movie_id: commentTestData.movie_id,
+                text: commentTestData.text,
+            });
+        });
 
-    //                 expect(
-    //                     mockedCommentServices.createComment
-    //                 ).toHaveBeenCalled();
-    //             });
+        it('returns 400 when required comment fields are missing', async () => {
+            const response = await request(app)
+                .post('/api/comments')
+                .set('Authorization', 'Bearer valid-token')
+                .send({ text: commentTestData.text });
 
-    //             it('returns 400 when required fields are missing', async () => {
-    //                 const response = await request(app)
-    //                     .post('/api/comments')
-    //                     .set('Authorization', 'Bearer valid-token')
-    //                     .send({
-    //                         text: commentTestData.text,
-    //                     });
+            expect(response.status).toBe(400);
+            expect(mockedCommentServices.createComment).not.toHaveBeenCalled();
+            expect(mockedUserServices.getUser).not.toHaveBeenCalled();
+        });
 
-    //                 expect(response.status).toBe(400);
+        it('returns 400 when the movie ID is invalid', async () => {
+            const response = await request(app)
+                .post('/api/comments')
+                .set('Authorization', 'Bearer valid-token')
+                .send({
+                    movie_id: 'not-an-object-id',
+                    text: commentTestData.text,
+                });
 
-    //                 expect(
-    //                     mockedCommentServices.createComment
-    //                 ).not.toHaveBeenCalled();
-    //             });
+            expect(response.status).toBe(400);
+            expect(response.body).toEqual({
+                error: 'Invalid comment data',
+                details: ['Invalid movie ID'],
+            });
+            expect(mockedUserServices.getUser).not.toHaveBeenCalled();
+            expect(mockedCommentServices.createComment).not.toHaveBeenCalled();
+        });
 
-    //             it('returns 400 when the authorization header is missing', async () => {
-    //                 const response = await request(app)
-    //                     .post('/api/comments')
-    //                     .send(commentTestData);
+        it('returns 400 when the request includes client-provided identity fields', async () => {
+            const response = await request(app)
+                .post('/api/comments')
+                .set('Authorization', 'Bearer valid-token')
+                .send({
+                    name: 'Other Person',
+                    email: 'other@example.com',
+                    movie_id: commentTestData.movie_id,
+                    text: commentTestData.text,
+                });
 
-    //                 expect(response.status).toBe(400);
+            expect(response.status).toBe(400);
+            expect(mockedCommentServices.createComment).not.toHaveBeenCalled();
+        });
 
-    //                 expect(
-    //                     mockedUserServices.verifySessionToken
-    //                 ).not.toHaveBeenCalled();
-    //             });
+        it('returns 400 when the authorization header is missing', async () => {
+            const response = await request(app)
+                .post('/api/comments')
+                .send({
+                    movie_id: commentTestData.movie_id,
+                    text: commentTestData.text,
+                });
 
-    //             it('returns 401 when the authorization format is invalid', async () => {
-    //                 const response = await request(app)
-    //                     .post('/api/comments')
-    //                     .set('Authorization', 'Basic something')
-    //                     .send(commentTestData);
+            expect(response.status).toBe(400);
+            expect(mockedUserServices.verifySessionToken).not.toHaveBeenCalled();
+        });
 
-    //                 expect(response.status).toBe(401);
+        it('returns 401 when the authorization format is invalid', async () => {
+            const response = await request(app)
+                .post('/api/comments')
+                .set('Authorization', 'Basic something')
+                .send({
+                    movie_id: commentTestData.movie_id,
+                    text: commentTestData.text,
+                });
 
-    //                 expect(
-    //                     mockedUserServices.verifySessionToken
-    //                 ).not.toHaveBeenCalled();
-    //             });
+            expect(response.status).toBe(401);
+            expect(mockedUserServices.verifySessionToken).not.toHaveBeenCalled();
+        });
 
-    //             it('returns 401 when the token is invalid', async () => {
-    //                 mockedUserServices.verifySessionToken.mockRejectedValue(
-    //                     new Error('Invalid token')
-    //                 );
+        it('returns 401 when the session token is invalid', async () => {
+            mockedUserServices.verifySessionToken.mockRejectedValue(new Error('Invalid token'));
 
-    //                 const response = await request(app)
-    //                     .post('/api/comments')
-    //                     .set('Authorization', 'Bearer invalid-token')
-    //                     .send(commentTestData);
+            const response = await request(app)
+                .post('/api/comments')
+                .set('Authorization', 'Bearer invalid-token')
+                .send({
+                    movie_id: commentTestData.movie_id,
+                    text: commentTestData.text,
+                });
 
-    //                 expect(response.status).toBe(401);
+            expect(response.status).toBe(401);
+            expect(response.body).toEqual({ error: 'Invalid token' });
+            expect(mockedCommentServices.createComment).not.toHaveBeenCalled();
+        });
 
-    //                 expect(
-    //                     mockedCommentServices.createComment
-    //                 ).not.toHaveBeenCalled();
-    //             });
-    //         });
+        it('returns 401 when the session has expired', async () => {
+            mockedUserServices.verifySessionToken.mockRejectedValue(new Error('Token expired'));
+
+            const response = await request(app)
+                .post('/api/comments')
+                .set('Authorization', 'Bearer expired-token')
+                .send({
+                    movie_id: commentTestData.movie_id,
+                    text: commentTestData.text,
+                });
+
+            expect(response.status).toBe(401);
+            expect(response.body).toEqual({ error: 'Token expired' });
+            expect(mockedCommentServices.createComment).not.toHaveBeenCalled();
+        });
+
+        it('returns 401 when JWT verification reports an expired token', async () => {
+            mockedUserServices.verifySessionToken.mockRejectedValue(new Error('jwt expired'));
+
+            const response = await request(app)
+                .post('/api/comments')
+                .set('Authorization', 'Bearer expired-token')
+                .send({
+                    movie_id: commentTestData.movie_id,
+                    text: commentTestData.text,
+                });
+
+            expect(response.status).toBe(401);
+            expect(response.body).toEqual({ error: 'Token expired' });
+            expect(mockedCommentServices.createComment).not.toHaveBeenCalled();
+        });
+
+        it('returns 404 when the authenticated user no longer exists', async () => {
+            mockedUserServices.getUser.mockResolvedValue(null as any);
+
+            const response = await request(app)
+                .post('/api/comments')
+                .set('Authorization', 'Bearer valid-token')
+                .send({
+                    movie_id: commentTestData.movie_id,
+                    text: commentTestData.text,
+                });
+
+            expect(response.status).toBe(404);
+            expect(response.body).toEqual({ error: 'User not found' });
+            expect(mockedCommentServices.createComment).not.toHaveBeenCalled();
+        });
+
+        it('returns the full comment schema validation messages when authenticated user data is invalid', async () => {
+            mockedUserServices.getUser.mockResolvedValue({
+                ...authenticatedUser,
+                email: 'invalid-email',
+            } as any);
+
+            const response = await request(app)
+                .post('/api/comments')
+                .set('Authorization', 'Bearer valid-token')
+                .send({
+                    movie_id: commentTestData.movie_id,
+                    text: commentTestData.text,
+                });
+
+            expect(response.status).toBe(500);
+            expect(response.body).toEqual({
+                error: 'Failed to create comment',
+                details: ['Invalid email address'],
+            });
+            expect(mockedCommentServices.createComment).not.toHaveBeenCalled();
+        });
+
+        it('returns 503 when the database is unavailable', async () => {
+            mockedUserServices.getUser.mockRejectedValue(new Error('connect ECONNREFUSED'));
+
+            const response = await request(app)
+                .post('/api/comments')
+                .set('Authorization', 'Bearer valid-token')
+                .send({
+                    movie_id: commentTestData.movie_id,
+                    text: commentTestData.text,
+                });
+
+            expect(response.status).toBe(503);
+            expect(response.body).toEqual({ error: 'Database unavailable' });
+        });
+    });
 
     //         describe('PUT /api/comments/:id', () => {
     //             it('returns 200 when the comment owner updates their comment', async () => {

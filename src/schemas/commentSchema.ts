@@ -21,7 +21,6 @@ export const commentQuerySchema = z.object({
 })
 
 export const commentSchema = z.object({
-
     text: z.string().min(1).max(500),
     name: z.string().min(1).max(50),
     email: z.string().email(),
@@ -32,3 +31,7 @@ export const commentSchema = z.object({
         }
     ),
 });
+
+export const commentInputSchema = commentSchema
+    .pick({ text: true, movie_id: true })
+    .strict();
