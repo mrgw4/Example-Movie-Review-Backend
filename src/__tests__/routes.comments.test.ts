@@ -872,93 +872,166 @@ describe('Comment routes', () => {
         });
     });
 
-    //         describe('DELETE /api/comments/:id', () => {
-    //             it('returns 200 when the comment owner deletes their comment', async () => {
-    //                 mockedCommentServices.getCommentById.mockResolvedValue(
-    //                     commentTestData
-    //                 );
+    describe('DELETE /api/comments/:id', () => {
+        it('returns 200 when the comment owner deletes their comment', async () => {
+            mockedCommentServices.getCommentById.mockResolvedValue(commentTestData as any);
+            mockedUserServices.canEditComment.mockResolvedValue(true);
+            mockedCommentServices.deleteComment.mockResolvedValue(commentTestData as any);
 
-    //                 mockedUserServices.canModifyComment.mockResolvedValue(true);
+            const response = await request(app)
+                .delete(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer owner-token');
 
-    //                 mockedCommentServices.deleteComment.mockResolvedValue(
-    //                     commentTestData
-    //                 );
+            expect(response.status).toBe(200);
+            expect(response.body).toEqual({
+                message: 'Comment deleted successfully',
+                comment: commentTestData,
+            });
+            expect(mockedUserServices.canEditComment).toHaveBeenCalledWith(
+                'owner-token',
+                commentTestData.email
+            );
+            expect(mockedCommentServices.deleteComment).toHaveBeenCalledWith(commentTestData._id);
+        });
 
-    //                 const response = await request(app)
-    //                     .delete(`/api/comments/${commentTestData._id}`)
-    //                     .set('Authorization', 'Bearer owner-token');
+        it('returns 200 when an admin deletes another users comment', async () => {
+            mockedCommentServices.getCommentById.mockResolvedValue(commentTestData as any);
+            mockedUserServices.canEditComment.mockResolvedValue(true);
+            mockedCommentServices.deleteComment.mockResolvedValue(commentTestData as any);
 
-    //                 expect(response.status).toBe(200);
+            const response = await request(app)
+                .delete(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer admin-token');
 
-    //                 expect(
-    //                     mockedUserServices.canModifyComment
-    //                 ).toHaveBeenCalledWith(
-    //                     'owner-token',
-    //                     commentTestData
-    //                 );
+            expect(response.status).toBe(200);
+            expect(mockedUserServices.canEditComment).toHaveBeenCalledWith(
+                'admin-token',
+                commentTestData.email
+            );
+        });
 
-    //                 expect(
-    //                     mockedCommentServices.deleteComment
-    //                 ).toHaveBeenCalledWith(commentTestData._id);
-    //             });
+        it('returns 403 when the user is neither the owner nor an admin', async () => {
+            mockedCommentServices.getCommentById.mockResolvedValue(commentTestData as any);
+            mockedUserServices.canEditComment.mockResolvedValue(false);
 
-    //             it('returns 200 when an admin deletes another users comment', async () => {
-    //                 mockedCommentServices.getCommentById.mockResolvedValue(
-    //                     commentTestData
-    //                 );
+            const response = await request(app)
+                .delete(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer other-user-token');
 
-    //                 mockedUserServices.canModifyComment.mockResolvedValue(true);
+            expect(response.status).toBe(403);
+            expect(response.body).toEqual({ error: 'User is not authorized to delete this comment' });
+            expect(mockedCommentServices.deleteComment).not.toHaveBeenCalled();
+        });
 
-    //                 mockedCommentServices.deleteComment.mockResolvedValue(
-    //                     commentTestData
-    //                 );
+        it('returns 400 for an invalid comment ID', async () => {
+            const response = await request(app)
+                .delete('/api/comments/not-an-object-id')
+                .set('Authorization', 'Bearer valid-token');
 
-    //                 const response = await request(app)
-    //                     .delete(`/api/comments/${commentTestData._id}`)
-    //                     .set('Authorization', 'Bearer admin-token');
+            expect(response.status).toBe(400);
+            expect(response.body).toEqual({ error: 'Invalid comment ID' });
+            expect(mockedCommentServices.getCommentById).not.toHaveBeenCalled();
+        });
 
-    //                 expect(response.status).toBe(200);
+        it('returns 400 when authorization is missing', async () => {
+            const response = await request(app)
+                .delete(`/api/comments/${commentTestData._id}`);
 
-    //                 expect(
-    //                     mockedUserServices.canModifyComment
-    //                 ).toHaveBeenCalledWith(
-    //                     'admin-token',
-    //                     commentTestData
-    //                 );
-    //             });
+            expect(response.status).toBe(400);
+            expect(response.body).toEqual({ error: 'Authorization token is required' });
+        });
 
-    //             it('returns 403 when the user is neither the owner nor an admin', async () => {
-    //                 mockedCommentServices.getCommentById.mockResolvedValue(
-    //                     commentTestData
-    //                 );
+        it('returns 401 when the authorization format is invalid', async () => {
+            const response = await request(app)
+                .delete(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Basic token');
 
-    //                 mockedUserServices.canModifyComment.mockRejectedValue(
-    //                     new Error('User is not authorized to modify this comment')
-    //                 );
+            expect(response.status).toBe(401);
+            expect(response.body).toEqual({ error: 'Invalid authorization format' });
+        });
 
-    //                 const response = await request(app)
-    //                     .delete(`/api/comments/${commentTestData._id}`)
-    //                     .set('Authorization', 'Bearer other-user-token');
+        it('returns 401 when the Bearer token is empty', async () => {
+            const response = await request(app)
+                .delete(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer ');
 
-    //                 expect(response.status).toBe(403);
+            expect(response.status).toBe(401);
+            expect(response.body).toEqual({ error: 'Invalid token' });
+        });
 
-    //                 expect(
-    //                     mockedCommentServices.deleteComment
-    //                 ).not.toHaveBeenCalled();
-    //             });
+        it('returns 404 when the comment does not exist', async () => {
+            mockedCommentServices.getCommentById.mockRejectedValue(new Error('Comment not found'));
 
-    //             it('returns 404 when the comment does not exist', async () => {
-    //                 mockedCommentServices.getCommentById.mockResolvedValue(null);
+            const response = await request(app)
+                .delete(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer valid-token');
 
-    //                 const response = await request(app)
-    //                     .delete(`/api/comments/${commentTestData._id}`)
-    //                     .set('Authorization', 'Bearer valid-token');
+            expect(response.status).toBe(404);
+            expect(response.body).toEqual({ error: 'Comment not found' });
+            expect(mockedUserServices.canEditComment).not.toHaveBeenCalled();
+        });
 
-    //                 expect(response.status).toBe(404);
+        it('returns 401 when the session token is invalid', async () => {
+            mockedCommentServices.getCommentById.mockResolvedValue(commentTestData as any);
+            mockedUserServices.canEditComment.mockRejectedValue(new Error('Invalid token'));
 
-    //                 expect(
-    //                     mockedUserServices.canModifyComment
-    //                 ).not.toHaveBeenCalled();
-    //             });
-    //         });
+            const response = await request(app)
+                .delete(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer invalid-token');
+
+            expect(response.status).toBe(401);
+            expect(response.body).toEqual({ error: 'Invalid token' });
+            expect(mockedCommentServices.deleteComment).not.toHaveBeenCalled();
+        });
+
+        it('returns 401 when the session has expired', async () => {
+            mockedCommentServices.getCommentById.mockResolvedValue(commentTestData as any);
+            mockedUserServices.canEditComment.mockRejectedValue(new Error('Token expired'));
+
+            const response = await request(app)
+                .delete(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer expired-token');
+
+            expect(response.status).toBe(401);
+            expect(response.body).toEqual({ error: 'Token expired' });
+            expect(mockedCommentServices.deleteComment).not.toHaveBeenCalled();
+        });
+
+        it('returns 503 when the database is unavailable', async () => {
+            mockedCommentServices.getCommentById.mockRejectedValue(new Error('connect failed'));
+
+            const response = await request(app)
+                .delete(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer valid-token');
+
+            expect(response.status).toBe(503);
+            expect(response.body).toEqual({ error: 'Database unavailable' });
+        });
+
+        it('returns 404 when the comment is deleted before the delete completes', async () => {
+            mockedCommentServices.getCommentById.mockResolvedValue(commentTestData as any);
+            mockedUserServices.canEditComment.mockResolvedValue(true);
+            mockedCommentServices.deleteComment.mockRejectedValue(new Error('Comment not found'));
+
+            const response = await request(app)
+                .delete(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer owner-token');
+
+            expect(response.status).toBe(404);
+            expect(response.body).toEqual({ error: 'Comment not found' });
+        });
+
+        it('returns 500 when deletion fails unexpectedly', async () => {
+            mockedCommentServices.getCommentById.mockResolvedValue(commentTestData as any);
+            mockedUserServices.canEditComment.mockResolvedValue(true);
+            mockedCommentServices.deleteComment.mockRejectedValue(new Error('Unexpected failure'));
+
+            const response = await request(app)
+                .delete(`/api/comments/${commentTestData._id}`)
+                .set('Authorization', 'Bearer owner-token');
+
+            expect(response.status).toBe(500);
+            expect(response.body).toEqual({ error: 'Failed to delete comment' });
+        });
+    });
 });

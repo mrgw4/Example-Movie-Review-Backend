@@ -242,4 +242,68 @@ router.put('/:id', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * DELETE /api/comments/:id
+ * Deletes a comment when the requester is its author or an admin.
+ */
+router.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid comment ID' });
+    }
+
+    const rawAuth = req.headers.authorization;
+
+    if (rawAuth === undefined) {
+      return res.status(400).json({ error: 'Authorization token is required' });
+    }
+
+    const authHeader = String(rawAuth).trim();
+
+    if (!/^Bearer\b/i.test(authHeader)) {
+      return res.status(401).json({ error: 'Invalid authorization format' });
+    }
+
+    const token = authHeader.replace(/^Bearer\b/i, '').trim();
+
+    if (token.length === 0) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    const existingComment = await comment.getCommentById(id);
+    const canEdit = await user.canEditComment(token, existingComment.email);
+
+    if (!canEdit) {
+      return res.status(403).json({ error: 'User is not authorized to delete this comment' });
+    }
+
+    const deletedComment = await comment.deleteComment(id);
+
+    return res.status(200).json({
+      message: 'Comment deleted successfully',
+      comment: deletedComment
+    });
+  } catch (error) {
+    if (error instanceof Error && (error.message === 'Token expired' || error.message === 'jwt expired')) {
+      return res.status(401).json({ error: 'Token expired' });
+    }
+
+    if (error instanceof Error && (error.message === 'Invalid token' || error.message.includes('jwt'))) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    if (error instanceof Error && error.message.includes('connect')) {
+      return res.status(503).json({ error: 'Database unavailable' });
+    }
+
+    if (error instanceof Error && error.message.includes('not found')) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    return res.status(500).json({ error: 'Failed to delete comment' });
+  }
+});
+
 export default router;

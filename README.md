@@ -99,14 +99,15 @@ The comment router is mounted at `/api/comments`.
 | `GET /api/comments/:id` | Returns one comment by MongoDB ObjectId. |
 | `POST /api/comments` | Creates a comment for the authenticated user. Requires a Bearer token and `movie_id` plus `text`; name and email are taken from the account. |
 | `PUT /api/comments/:id` | Updates a comment's `text`. Requires the comment author or an admin. |
+| `DELETE /api/comments/:id` | Deletes a comment. Requires the comment author or an admin. |
 
-The current comment API does not implement comment deletion.
+Comment creation requests use `/api/comments` with `movie_id` and `text` in the JSON body.
 
 ## Postman Collection
 
 The importable collection is [Mflix Collection.postman_collection.json](Mflix%20Collection.postman_collection.json). In Postman, choose **Import** and select that file. It contains request folders for users, movies, and comments, with success and error scenarios. Requests target `http://localhost:5000`, so run the server on its default port or edit the collection URLs. Collection scripts use Postman environment variables to retain generated emails, IDs, and authentication tokens while requests run.
 
-The collection's comment requests are not fully aligned with the current API: its create requests use `/api/comments/:movieId`, and it includes comment deletion requests that are not implemented. The current API accepts comment creation at `POST /api/comments` with `movie_id` and `text` in the JSON body. Review those requests before using the collection as a complete comment API test suite.
+The collection's comment requests are not fully aligned with the current API: its create requests use `/api/comments/:movieId`, while the current API accepts creation at `POST /api/comments` with `movie_id` and `text` in the JSON body. The collection also includes comment update and delete requests. Review the create requests before using the collection as a complete comment API test suite.
 
 ## Test Database Reset
 
