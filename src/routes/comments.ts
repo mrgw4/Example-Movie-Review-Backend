@@ -7,6 +7,18 @@ import mongoose from 'mongoose';
 
 const router = Router();
 
+function toPublicComment(commentDocument: unknown): Record<string, unknown> {
+  const comment = commentDocument as Record<string, unknown> & {
+    toObject?: () => Record<string, unknown>;
+  };
+  const result = typeof comment.toObject === 'function'
+    ? comment.toObject()
+    : { ...comment };
+
+  delete result.email;
+  return result;
+}
+
 /**
  * GET /api/comments?userId&movieId&page=1&limit=20
  * Returns paginated comments from the database.
@@ -30,7 +42,7 @@ router.get('/', async (req: Request, res: Response) => {
     const totalPages = Math.ceil(total / query.limit);
 
     return res.status(200).json({
-      data: comments,
+      data: comments.map(toPublicComment),
       pagination: {
         page: query.page,
         limit: query.limit,
@@ -81,7 +93,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 
     const requestedComment = await comment.getCommentById(id);
 
-    return res.status(200).json(requestedComment);
+    return res.status(200).json(toPublicComment(requestedComment));
   } catch (error) {
     if (error instanceof Error && error.message.includes('connect')) {
       return res.status(503).json({ error: 'Database unavailable' });
@@ -162,6 +174,10 @@ router.post('/', async (req: Request, res: Response) => {
 
     if (error instanceof Error && (error.message === 'Invalid token' || error.message.includes('jwt'))) {
       return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    if (error instanceof Error && error.message === 'Movie not found') {
+      return res.status(404).json({ error: 'Movie not found' });
     }
 
     if (error instanceof Error && error.message.includes('connect')) {

@@ -95,9 +95,9 @@ The comment router is mounted at `/api/comments`.
 
 | Method and path | Behavior and access |
 | --- | --- |
-| `GET /api/comments?userId=<id>&movieId=<id>&page=1&limit=20` | Lists comments filtered by either or both IDs. At least one filter is required. Returns pagination metadata. |
-| `GET /api/comments/:id` | Returns one comment by MongoDB ObjectId. |
-| `POST /api/comments` | Creates a comment for the authenticated user. Requires a Bearer token and `movie_id` plus `text`; name and email are taken from the account. |
+| `GET /api/comments?userId=<id>&movieId=<id>&page=1&limit=20` | Lists comments filtered by either or both IDs. At least one filter is required. Returns pagination metadata without author email addresses. |
+| `GET /api/comments/:id` | Returns one comment by MongoDB ObjectId without the author's email address. |
+| `POST /api/comments` | Creates a comment for the authenticated user. Requires a Bearer token and `movie_id` referencing an existing movie plus `text`; name and email are taken from the account. |
 | `PUT /api/comments/:id` | Updates a comment's `text`. Requires the comment author or an admin. |
 | `DELETE /api/comments/:id` | Deletes a comment. Requires the comment author or an admin. |
 

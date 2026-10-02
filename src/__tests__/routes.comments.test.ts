@@ -27,6 +27,13 @@ const commentTestData = {
     text: 'This is a great movie!',
 };
 
+const publicCommentTestData = {
+    _id: commentTestData._id,
+    name: commentTestData.name,
+    movie_id: commentTestData.movie_id,
+    text: commentTestData.text,
+};
+
 const validId = '507f1f77bcf86cd799439011';
 const authenticatedUser = {
     _id: '507f1f77bcf86cd799439013',
@@ -53,7 +60,7 @@ describe('Comment routes', () => {
             expect(response.status).toBe(200);
 
             expect(response.body).toEqual({
-                data: [commentTestData],
+                data: [publicCommentTestData],
                 pagination: {
                     page: 1,
                     limit: 20,
@@ -330,13 +337,17 @@ describe('Comment routes', () => {
 
     describe('GET /api/comments/:id', () => {
         it('returns 200 with the requested comment', async () => {
-            mockedCommentServices.getCommentById.mockResolvedValue(commentTestData as any);
+            const commentDocument = {
+                toObject: jest.fn().mockReturnValue(commentTestData),
+            };
+            mockedCommentServices.getCommentById.mockResolvedValue(commentDocument as any);
 
             const response = await request(app)
                 .get(`/api/comments/${commentTestData._id}`);
 
             expect(response.status).toBe(200);
-            expect(response.body).toEqual(commentTestData);
+            expect(response.body).toEqual(publicCommentTestData);
+            expect(commentDocument.toObject).toHaveBeenCalled();
 
             expect(
                 mockedCommentServices.getCommentById
@@ -470,6 +481,21 @@ describe('Comment routes', () => {
             });
             expect(mockedUserServices.getUser).not.toHaveBeenCalled();
             expect(mockedCommentServices.createComment).not.toHaveBeenCalled();
+        });
+
+        it('returns 404 when the referenced movie does not exist', async () => {
+            mockedCommentServices.createComment.mockRejectedValue(new Error('Movie not found'));
+
+            const response = await request(app)
+                .post('/api/comments')
+                .set('Authorization', 'Bearer valid-token')
+                .send({
+                    movie_id: commentTestData.movie_id,
+                    text: commentTestData.text,
+                });
+
+            expect(response.status).toBe(404);
+            expect(response.body).toEqual({ error: 'Movie not found' });
         });
 
         it('returns 400 when the request includes client-provided identity fields', async () => {

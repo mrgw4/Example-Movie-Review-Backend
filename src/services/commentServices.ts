@@ -93,6 +93,8 @@ export async function createComment(commentData: {
     movie_id: string;
     text: string;
 }) {
+    await getMovie(commentData.movie_id);
+
     return Comment.create(commentData);
 }
 

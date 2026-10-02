@@ -260,15 +260,30 @@ describe('commentServices', () => {
 
     describe('createComment', () => {
         it('creates and returns a comment', async () => {
+            mockedMovieServices.getMovie.mockResolvedValue(movieTestData);
             mockedComment.create.mockResolvedValue(commentTestData);
 
             const result = await commentServices.createComment(newCommentData);
 
+            expect(mockedMovieServices.getMovie).toHaveBeenCalledWith(
+                newCommentData.movie_id
+            );
             expect(mockedComment.create).toHaveBeenCalledWith(newCommentData);
             expect(result).toEqual(commentTestData);
         });
 
+        it('throws when the referenced movie does not exist', async () => {
+            mockedMovieServices.getMovie.mockRejectedValue(new Error('Movie not found'));
+
+            await expect(
+                commentServices.createComment(newCommentData)
+            ).rejects.toThrow('Movie not found');
+
+            expect(mockedComment.create).not.toHaveBeenCalled();
+        });
+
         it('propagates database errors', async () => {
+            mockedMovieServices.getMovie.mockResolvedValue(movieTestData);
             mockedComment.create.mockRejectedValue(
                 new Error('Database unavailable')
             );
