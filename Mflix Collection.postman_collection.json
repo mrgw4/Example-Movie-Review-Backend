@@ -2567,7 +2567,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 201\", function () {\n    pm.response.to.have.status(201);\n});\n\npm.test(\"Response has correct comment structure\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"_id\");\n    pm.expect(json).to.have.property(\"name\");\n    pm.expect(json).to.have.property(\"movie_id\");\n    pm.expect(json).to.have.property(\"text\");\n});\n\npm.test(\"Comment is linked to the correct movie\", function () {\n    const json = pm.response.json();\n    const movieId = pm.environment.get(\"movieId\");\n    pm.expect(json.movie_id).to.equal(movieId);\n});\n\npm.test(\"Comment text matches submitted text\", function () {\n    const json = pm.response.json();\n    pm.expect(json.text).to.equal(\"A great movie, thoroughly enjoyed it.\");\n});\n\npm.test(\"Save commentId to environment\", function () {\n    const json = pm.response.json();\n    pm.expect(json._id).to.be.a(\"string\").and.not.be.empty;\n    pm.environment.set(\"commentId\", json._id);\n});\n\npm.test(\"Comment is linked to the authenticated user\", function () {\n    const json = pm.response.json();\n    const userId = pm.environment.get(\"userId2\");\n\n    pm.expect(json.user_id || json.userId).to.equal(userId);\n});"
+                  "pm.test(\"Status code is 201\", function () {\n    pm.response.to.have.status(201);\n});\n\npm.test(\"Response has correct comment structure\", function () {\n    const json = pm.response.json().comment;\n    pm.expect(json).to.have.property(\"_id\");\n    pm.expect(json).to.have.property(\"name\");\n    pm.expect(json).to.have.property(\"movie_id\");\n    pm.expect(json).to.have.property(\"text\");\n});\n\npm.test(\"Comment is linked to the correct movie\", function () {\n    const json = pm.response.json().comment;\n    const movieId = pm.environment.get(\"movieId\");\n    pm.expect(json.movie_id).to.equal(movieId);\n});\n\npm.test(\"Comment text matches submitted text\", function () {\n    const json = pm.response.json().comment;\n    pm.expect(json.text).to.equal(\"A great movie, thoroughly enjoyed it.\");\n});\n\npm.test(\"Save commentId to environment\", function () {\n    const json = pm.response.json().comment;\n    pm.expect(json._id).to.be.a(\"string\").and.not.be.empty;\n    pm.environment.set(\"commentId\", json._id);\n});"
                 ]
               }
             }
@@ -2586,7 +2586,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"text\": \"A great movie, thoroughly enjoyed it.\"}",
+              "raw": "{\"text\": \"A great movie, thoroughly enjoyed it.\", \"movie_id\": \"{{movieId}}\"}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2594,7 +2594,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5000/api/comments/{{movieId}}",
+              "raw": "http://localhost:5000/api/comments",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2602,61 +2602,10 @@
               "port": "5000",
               "path": [
                 "api",
-                "comments",
-                "{{movieId}}"
+                "comments"
               ]
             },
             "description": "Generated from cURL: curl -X POST \"http://localhost:5000/api/comments/{{movieId}}\" -H \"Content-Type: application/json\" -H \"Authorization: Bearer {{authToken2}}\" -d \"{\\\"text\\\": \\\"A great movie, thoroughly enjoyed it.\\\"}\""
-          },
-          "response": []
-        },
-        {
-          "name": "Create comment - authenticated user not allowed",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status code is 403\", function () {\n    pm.response.to.have.status(403);\n});\n\npm.test(\"Forbidden response returned\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"forbidden\") || msg.includes(\"not allowed\") || msg.includes(\"permission\") || msg.includes(\"authorized\");\n    });\n});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"text\": \"Forbidden comment attempt\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5000/api/comments/{{movieId}}",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5000",
-              "path": [
-                "api",
-                "comments",
-                "{{movieId}}"
-              ]
-            }
           },
           "response": []
         },
@@ -2668,7 +2617,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 401\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(401);\n});\n\npm.test(\"Error message indicates invalid token\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"token\") || msg.includes(\"auth\") || msg.includes(\"invalid\");\n    });\n});"
+                  "pm.test(\"Status code is 401\", function () {\n    pm.response.to.have.status(401);\n});\n\npm.test(\"Error message indicates invalid token\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"token\") || msg.includes(\"auth\") || msg.includes(\"invalid\");\n    });\n});"
                 ]
               }
             }
@@ -2687,7 +2636,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"text\": \"Bad token comment\"}",
+              "raw": "{\"text\": \"Bad token comment\", \"movie_id\": \"{{movieId}}\"}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2695,7 +2644,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5000/api/comments/{{movieId}}",
+              "raw": "http://localhost:5000/api/comments",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2703,8 +2652,7 @@
               "port": "5000",
               "path": [
                 "api",
-                "comments",
-                "{{movieId}}"
+                "comments"
               ]
             }
           },
@@ -2718,7 +2666,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 401\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(401);\n});\n\npm.test(\"Authentication error returned\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"auth\") || msg.includes(\"token\") || msg.includes(\"login\") || msg.includes(\"unauthorized\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 401\", function () {\n    pm.response.to.have.status(401);\n});\n\npm.test(\"Authentication error returned\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"auth\") || msg.includes(\"token\") || msg.includes(\"login\") || msg.includes(\"unauthorized\");\n    });\n});"
                 ]
               }
             }
@@ -2729,11 +2677,15 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": ""
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"text\": \"Missing auth test comment\"}",
+              "raw": "{\"text\": \"Missing auth test comment\", \"movie_id\": \"{{movieId}}\"}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2741,7 +2693,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5000/api/comments/{{movieId}}",
+              "raw": "http://localhost:5000/api/comments",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2749,8 +2701,7 @@
               "port": "5000",
               "path": [
                 "api",
-                "comments",
-                "{{movieId}}"
+                "comments"
               ]
             }
           },
@@ -2764,7 +2715,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 400\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Validation error is present\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"required\") || msg.includes(\"missing\") || msg.includes(\"field\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Validation error is present\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"Invalid\") || msg.includes(\"missing\") || msg.includes(\"field\");\n    });\n});"
                 ]
               }
             }
@@ -2783,7 +2734,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\"movie_id\": \"{{movieId}}\"}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2791,7 +2742,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5000/api/comments/{{movieId}}",
+              "raw": "http://localhost:5000/api/comments",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2799,8 +2750,7 @@
               "port": "5000",
               "path": [
                 "api",
-                "comments",
-                "{{movieId}}"
+                "comments"
               ]
             }
           },
@@ -2814,7 +2764,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 400\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error mentions invalid type\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"type\") || msg.includes(\"invalid\") || msg.includes(\"string\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error mentions invalid type\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"type\") || msg.includes(\"invalid\") || msg.includes(\"string\");\n    });\n});"
                 ]
               }
             }
@@ -2833,7 +2783,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"text\": 12345}",
+              "raw": "{\"text\": 12345, \"movie_id\": \"{{movieId}}\"}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2841,7 +2791,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5000/api/comments/{{movieId}}",
+              "raw": "http://localhost:5000/api/comments",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2849,8 +2799,7 @@
               "port": "5000",
               "path": [
                 "api",
-                "comments",
-                "{{movieId}}"
+                "comments"
               ]
             }
           },
@@ -2864,7 +2813,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 400\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error mentions email validation\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"email\") || msg.includes(\"invalid\") || msg.includes(\"format\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error mentions email validation\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"email\") || msg.includes(\"invalid\") || msg.includes(\"format\");\n    });\n});"
                 ]
               }
             }
@@ -2883,7 +2832,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"text\": \"Bad email check\", \"email\": \"not-an-email\"}",
+              "raw": "{\"text\": \"Bad email check\", \"email\": \"not-an-email\", \"movie_id\": \"{{movieId}}\"}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2891,7 +2840,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5000/api/comments/{{movieId}}",
+              "raw": "http://localhost:5000/api/comments",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2899,8 +2848,7 @@
               "port": "5000",
               "path": [
                 "api",
-                "comments",
-                "{{movieId}}"
+                "comments"
               ]
             }
           },
@@ -2914,7 +2862,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 400\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error references movie_id or ObjectId\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"movie_id\") || msg.includes(\"movieid\") || msg.includes(\"objectid\") || msg.includes(\"invalid\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error references movie_id or ObjectId\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"movie_id\") || msg.includes(\"movieid\") || msg.includes(\"objectid\") || msg.includes(\"invalid\");\n    });\n});"
                 ]
               }
             }
@@ -2941,7 +2889,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5000/api/comments/notanobjectid",
+              "raw": "http://localhost:5000/api/comments",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2949,8 +2897,7 @@
               "port": "5000",
               "path": [
                 "api",
-                "comments",
-                "notanobjectid"
+                "comments"
               ]
             }
           },
@@ -2964,7 +2911,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 404\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(404);\n});\n\npm.test(\"Error indicates missing movie\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"movie\") || msg.includes(\"not found\") || msg.includes(\"missing\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 404\", function () {\n    pm.response.to.have.status(404);\n});\n\npm.test(\"Error indicates missing movie\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"movie\") || msg.includes(\"not found\") || msg.includes(\"missing\");\n    });\n});"
                 ]
               }
             }
@@ -2991,7 +2938,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5000/api/comments/507f1f77bcf86cd799439011",
+              "raw": "http://localhost:5000/api/comments",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2999,8 +2946,7 @@
               "port": "5000",
               "path": [
                 "api",
-                "comments",
-                "507f1f77bcf86cd799439011"
+                "comments"
               ]
             }
           },
@@ -3014,7 +2960,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Response contains comment data\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"_id\");\n    pm.expect(json).to.have.property(\"movie_id\");\n    pm.expect(json).to.have.property(\"text\");\n});\n\npm.test(\"Returned comment matches saved comment id\", function () {\n    const json = pm.response.json();\n    pm.expect(json._id).to.equal(pm.environment.get(\"commentId\"));\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Response contains comment data\", function () {\n    pm.expect(json).to.have.property(\"_id\");\n    pm.expect(json).to.have.property(\"movie_id\");\n    pm.expect(json).to.have.property(\"text\");\n});\n\npm.test(\"Returned comment matches saved comment id\", function () {\n    pm.expect(json._id).to.equal(pm.environment.get(\"commentId\"));\n});"
                 ]
               }
             }
@@ -3046,7 +2992,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 400\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error message is present\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error references invalid comment id\", function () {\n    const json = pm.response.json();\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"comment\") || msg.includes(\"id\") || msg.includes(\"invalid\") || msg.includes(\"object\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error message is present\", function () {\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error references invalid comment id\", function () {\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"comment\") || msg.includes(\"id\") || msg.includes(\"invalid\") || msg.includes(\"object\");\n    });\n});"
                 ]
               }
             }
@@ -3078,7 +3024,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 404\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(404);\n});\n\npm.test(\"Error is returned\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error identifies missing comment\", function () {\n    const json = pm.response.json();\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"comment\") || msg.includes(\"not found\") || msg.includes(\"missing\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 404\", function () {\n    pm.response.to.have.status(404);\n});\n\npm.test(\"Error is returned\", function () {\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error identifies missing comment\", function () {\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"comment\") || msg.includes(\"not found\") || msg.includes(\"missing\");\n    });\n});"
                 ]
               }
             }
@@ -3110,7 +3056,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Response has pagination structure\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"comments\");\n    pm.expect(json).to.have.property(\"pagination\");\n});\n\npm.test(\"Comments is an array\", function () {\n    const json = pm.response.json();\n    pm.expect(json.comments).to.be.an(\"array\");\n});\n\npm.test(\"Pagination fields are present\", function () {\n    const json = pm.response.json();\n    pm.expect(json.pagination).to.have.property(\"page\");\n    pm.expect(json.pagination).to.have.property(\"limit\");\n    pm.expect(json.pagination).to.have.property(\"total\");\n    pm.expect(json.pagination).to.have.property(\"pages\");\n});\n\npm.test(\"Every comment belongs to the requested userId\", function () {\n    const json = pm.response.json();\n    const userId2 = pm.environment.get(\"userId2\");\n    pm.expect(userId2, \"userId2 env var must be set\").to.be.a(\"string\").and.not.be.empty;\n    json.comments.forEach(function (comment) {\n        const commentUserId = (comment.user_id || comment.userId || \"\").toString();\n        pm.expect(commentUserId).to.equal(userId2);\n    });\n});\n\npm.test(\"Returned page matches requested page\", function () {\n    const json = pm.response.json();\n    pm.expect(json.pagination.page).to.equal(1);\n});\n\npm.test(\"Returned limit matches requested limit\", function () {\n    const json = pm.response.json();\n    pm.expect(json.pagination.limit).to.equal(10);\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Response has pagination structure\", function () {\n    pm.expect(json).to.have.property(\"comments\");\n    pm.expect(json).to.have.property(\"pagination\");\n});\n\npm.test(\"Comments is an array\", function () {\n    pm.expect(json.comments).to.be.an(\"array\");\n});\n\npm.test(\"Pagination fields are present\", function () {\n    pm.expect(json.pagination).to.have.property(\"page\");\n    pm.expect(json.pagination).to.have.property(\"limit\");\n    pm.expect(json.pagination).to.have.property(\"total\");\n    pm.expect(json.pagination).to.have.property(\"pages\");\n});\n\npm.test(\"Every comment belongs to the requested userId\", function () {\n    const userId2 = pm.environment.get(\"userId2\");\n    pm.expect(userId2, \"userId2 env var must be set\").to.be.a(\"string\").and.not.be.empty;\n    json.comments.forEach(function (comment) {\n        const commentUserId = (comment.user_id || comment.userId || \"\").toString();\n        pm.expect(commentUserId).to.equal(userId2);\n    });\n});\n\npm.test(\"Returned page matches requested page\", function () {\n    pm.expect(json.pagination.page).to.equal(1);\n});\n\npm.test(\"Returned limit matches requested limit\", function () {\n    pm.expect(json.pagination.limit).to.equal(10);\n});"
                 ]
               }
             }
@@ -3155,7 +3101,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Response has pagination structure\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"comments\");\n    pm.expect(json).to.have.property(\"pagination\");\n});\n\npm.test(\"Comments is an array\", function () {\n    const json = pm.response.json();\n    pm.expect(json.comments).to.be.an(\"array\");\n});\n\npm.test(\"Pagination fields are present\", function () {\n    const json = pm.response.json();\n    pm.expect(json.pagination).to.have.property(\"page\");\n    pm.expect(json.pagination).to.have.property(\"limit\");\n    pm.expect(json.pagination).to.have.property(\"total\");\n    pm.expect(json.pagination).to.have.property(\"pages\");\n});\n\npm.test(\"Every comment belongs to the requested movieId\", function () {\n    const json = pm.response.json();\n    const movieId = pm.environment.get(\"movieId\");\n    pm.expect(movieId, \"movieId env var must be set\").to.be.a(\"string\").and.not.be.empty;\n    json.comments.forEach(function (comment) {\n        const commentMovieId = (comment.movie_id || comment.movieId || \"\").toString();\n        pm.expect(commentMovieId).to.equal(movieId);\n    });\n});\n\npm.test(\"Returned page matches requested page\", function () {\n    const json = pm.response.json();\n    pm.expect(json.pagination.page).to.equal(1);\n});\n\npm.test(\"Returned limit matches requested limit\", function () {\n    const json = pm.response.json();\n    pm.expect(json.pagination.limit).to.equal(10);\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Response has pagination structure\", function () {\n    pm.expect(json).to.have.property(\"comments\");\n    pm.expect(json).to.have.property(\"pagination\");\n});\n\npm.test(\"Comments is an array\", function () {\n    pm.expect(json.comments).to.be.an(\"array\");\n});\n\npm.test(\"Pagination fields are present\", function () {\n    pm.expect(json.pagination).to.have.property(\"page\");\n    pm.expect(json.pagination).to.have.property(\"limit\");\n    pm.expect(json.pagination).to.have.property(\"total\");\n    pm.expect(json.pagination).to.have.property(\"pages\");\n});\n\npm.test(\"Every comment belongs to the requested movieId\", function () {\n    const movieId = pm.environment.get(\"movieId\");\n    pm.expect(movieId, \"movieId env var must be set\").to.be.a(\"string\").and.not.be.empty;\n    json.comments.forEach(function (comment) {\n        const commentMovieId = (comment.movie_id || comment.movieId || \"\").toString();\n        pm.expect(commentMovieId).to.equal(movieId);\n    });\n});\n\npm.test(\"Returned page matches requested page\", function () {\n    pm.expect(json.pagination.page).to.equal(1);\n});\n\npm.test(\"Returned limit matches requested limit\", function () {\n    pm.expect(json.pagination.limit).to.equal(10);\n});"
                 ]
               }
             }
@@ -3201,7 +3147,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Response has pagination structure\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"comments\");\n    pm.expect(json).to.have.property(\"pagination\");\n});\n\npm.test(\"Comments is an array\", function () {\n    const json = pm.response.json();\n    pm.expect(json.comments).to.be.an(\"array\");\n});\n\npm.test(\"Pagination fields are present\", function () {\n    const json = pm.response.json();\n    pm.expect(json.pagination).to.have.property(\"page\");\n    pm.expect(json.pagination).to.have.property(\"limit\");\n    pm.expect(json.pagination).to.have.property(\"total\");\n    pm.expect(json.pagination).to.have.property(\"pages\");\n});\n\npm.test(\"Every comment matches both userId and movieId\", function () {\n    const json = pm.response.json();\n    const userId2 = pm.environment.get(\"userId2\");\n    const movieId = pm.environment.get(\"movieId\");\n    json.comments.forEach(function (comment) {\n        const commentUserId = (comment.user_id || comment.userId || \"\").toString();\n        const commentMovieId = (comment.movie_id || comment.movieId || \"\").toString();\n        pm.expect(commentUserId).to.equal(userId2);\n        pm.expect(commentMovieId).to.equal(movieId);\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Response has pagination structure\", function () {\n    pm.expect(json).to.have.property(\"comments\");\n    pm.expect(json).to.have.property(\"pagination\");\n});\n\npm.test(\"Comments is an array\", function () {\n    pm.expect(json.comments).to.be.an(\"array\");\n});\n\npm.test(\"Pagination fields are present\", function () {\n    pm.expect(json.pagination).to.have.property(\"page\");\n    pm.expect(json.pagination).to.have.property(\"limit\");\n    pm.expect(json.pagination).to.have.property(\"total\");\n    pm.expect(json.pagination).to.have.property(\"pages\");\n});\n\npm.test(\"Every comment matches both userId and movieId\", function () {\n    const userId2 = pm.environment.get(\"userId2\");\n    const movieId = pm.environment.get(\"movieId\");\n    json.comments.forEach(function (comment) {\n        const commentUserId = (comment.user_id || comment.userId || \"\").toString();\n        const commentMovieId = (comment.movie_id || comment.movieId || \"\").toString();\n        pm.expect(commentUserId).to.equal(userId2);\n        pm.expect(commentMovieId).to.equal(movieId);\n    });\n});"
                 ]
               }
             }
@@ -3251,7 +3197,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Comments array is empty\", function () {\n    const json = pm.response.json();\n    pm.expect(json.comments).to.be.an(\"array\").that.is.empty;\n});\n\npm.test(\"Total reflects actual count not zero\", function () {\n    const json = pm.response.json();\n    pm.expect(json.pagination.total).to.be.a(\"number\");\n});\n\npm.test(\"Pagination page reflects requested page\", function () {\n    const json = pm.response.json();\n    pm.expect(json.pagination.page).to.equal(9999);\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Comments array is empty\", function () {\n    pm.expect(json.comments).to.be.an(\"array\").that.is.empty;\n});\n\npm.test(\"Total reflects actual count not zero\", function () {\n    pm.expect(json.pagination.total).to.be.a(\"number\");\n});\n\npm.test(\"Pagination page reflects requested page\", function () {\n    pm.expect(json.pagination.page).to.equal(9999);\n});"
                 ]
               }
             }
@@ -3306,18 +3252,17 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const json = pm.response.json();",
+                  "",
                   "pm.test(\"Status code is 400\", function () {",
-                  "    const json = pm.response.json();",
                   "    pm.response.to.have.status(400);",
                   "});",
                   "",
                   "pm.test(\"Error message is present\", function () {",
-                  "    const json = pm.response.json();",
                   "    pm.expect(json).to.have.property(\"error\");",
                   "});",
                   "",
                   "pm.test(\"Error indicates a filter is required\", function () {",
-                  "    const json = pm.response.json();",
                   "    pm.expect(json.error.toLowerCase()).to.satisfy(function(msg) {",
                   "        return msg.includes(\"required\") || msg.includes(\"filter\") || msg.includes(\"userid\") || msg.includes(\"movieid\");",
                   "    });",
@@ -3353,7 +3298,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 400\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error message is present\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error references userId or invalid format\", function () {\n    const json = pm.response.json();\n    pm.expect(json.error.toLowerCase()).to.satisfy(function(msg) {\n        return msg.includes(\"userid\") || msg.includes(\"user_id\") || msg.includes(\"invalid\") || msg.includes(\"id\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error message is present\", function () {\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error references userId or invalid format\", function () {\n    pm.expect(json.error.toLowerCase()).to.satisfy(function(msg) {\n        return msg.includes(\"userid\") || msg.includes(\"user_id\") || msg.includes(\"invalid\") || msg.includes(\"id\");\n    });\n});"
                 ]
               }
             }
@@ -3391,7 +3336,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 400\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error message is present\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error references movieId or invalid format\", function () {\n    const json = pm.response.json();\n    pm.expect(json.error.toLowerCase()).to.satisfy(function(msg) {\n        return msg.includes(\"movieid\") || msg.includes(\"movie_id\") || msg.includes(\"invalid\") || msg.includes(\"id\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error message is present\", function () {\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error references movieId or invalid format\", function () {\n    pm.expect(json.error.toLowerCase()).to.satisfy(function(msg) {\n        return msg.includes(\"movieid\") || msg.includes(\"movie_id\") || msg.includes(\"invalid\") || msg.includes(\"id\");\n    });\n});"
                 ]
               }
             }
@@ -3429,7 +3374,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 400\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error message is present\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error references page parameter\", function () {\n    const json = pm.response.json();\n    pm.expect(json.error.toLowerCase()).to.satisfy(function(msg) {\n        return msg.includes(\"page\") || msg.includes(\"invalid\") || msg.includes(\"number\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error message is present\", function () {\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error references page parameter\", function () {\n    pm.expect(json.error.toLowerCase()).to.satisfy(function(msg) {\n        return msg.includes(\"page\") || msg.includes(\"invalid\") || msg.includes(\"number\");\n    });\n});"
                 ]
               }
             }
@@ -3471,7 +3416,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 400\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error message is present\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error references limit parameter\", function () {\n    const json = pm.response.json();\n    pm.expect(json.error.toLowerCase()).to.satisfy(function(msg) {\n        return msg.includes(\"limit\") || msg.includes(\"invalid\") || msg.includes(\"number\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error message is present\", function () {\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error references limit parameter\", function () {\n    pm.expect(json.error.toLowerCase()).to.satisfy(function(msg) {\n        return msg.includes(\"limit\") || msg.includes(\"invalid\") || msg.includes(\"number\");\n    });\n});"
                 ]
               }
             }
@@ -3513,7 +3458,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 400\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error message is present\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error references limit or maximum\", function () {\n    const json = pm.response.json();\n    pm.expect(json.error.toLowerCase()).to.satisfy(function(msg) {\n        return msg.includes(\"limit\") || msg.includes(\"maximum\") || msg.includes(\"max\") || msg.includes(\"exceed\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error message is present\", function () {\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error references limit or maximum\", function () {\n    pm.expect(json.error.toLowerCase()).to.satisfy(function(msg) {\n        return msg.includes(\"limit\") || msg.includes(\"maximum\") || msg.includes(\"max\") || msg.includes(\"exceed\");\n    });\n});"
                 ]
               }
             }
@@ -3555,7 +3500,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Comment was updated\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"_id\");\n    pm.expect(json).to.have.property(\"text\");\n    pm.expect(json.text).to.equal(\"Updated comment text\");\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Comment was updated\", function () {\n    pm.expect(json).to.have.property(\"_id\");\n    pm.expect(json).to.have.property(\"text\");\n    pm.expect(json.text).to.equal(\"Updated comment text\");\n});"
                 ]
               }
             }
@@ -3605,7 +3550,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 400\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error indicates invalid comment id\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"comment\") || msg.includes(\"id\") || msg.includes(\"invalid\") || msg.includes(\"object\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error indicates invalid comment id\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"comment\") || msg.includes(\"id\") || msg.includes(\"invalid\") || msg.includes(\"object\");\n    });\n});"
                 ]
               }
             }
@@ -3655,7 +3600,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 400\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Validation error is returned\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"invalid\") || msg.includes(\"body\") || msg.includes(\"request\") || msg.includes(\"fields\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Validation error is returned\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"invalid\") || msg.includes(\"body\") || msg.includes(\"request\") || msg.includes(\"fields\");\n    });\n});"
                 ]
               }
             }
@@ -3705,7 +3650,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 400\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error mentions no valid fields\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"valid\") || msg.includes(\"field\") || msg.includes(\"update\") || msg.includes(\"empty\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error mentions no valid fields\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"valid\") || msg.includes(\"field\") || msg.includes(\"update\") || msg.includes(\"empty\");\n    });\n});"
                 ]
               }
             }
@@ -3755,7 +3700,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 401\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(401);\n});\n\npm.test(\"Authentication error returned\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"auth\") || msg.includes(\"token\") || msg.includes(\"unauthorized\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 401\", function () {\n    pm.response.to.have.status(401);\n});\n\npm.test(\"Authentication error returned\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"auth\") || msg.includes(\"token\") || msg.includes(\"unauthorized\");\n    });\n});"
                 ]
               }
             }
@@ -3801,7 +3746,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 403\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(403);\n});\n\npm.test(\"Forbidden message is returned\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"forbidden\") || msg.includes(\"owner\") || msg.includes(\"authorize\") || msg.includes(\"permission\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 403\", function () {\n    pm.response.to.have.status(403);\n});\n\npm.test(\"Forbidden message is returned\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"forbidden\") || msg.includes(\"owner\") || msg.includes(\"authorize\") || msg.includes(\"permission\");\n    });\n});"
                 ]
               }
             }
@@ -3851,7 +3796,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 404\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(404);\n});\n\npm.test(\"Missing comment is reported\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"not found\") || msg.includes(\"comment\") || msg.includes(\"missing\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 404\", function () {\n    pm.response.to.have.status(404);\n});\n\npm.test(\"Missing comment is reported\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"not found\") || msg.includes(\"comment\") || msg.includes(\"missing\");\n    });\n});"
                 ]
               }
             }
@@ -3894,43 +3839,6 @@
           "response": []
         },
         {
-          "name": "Delete comment - successfully deleted",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status code is 204\", function () {\n    pm.response.to.have.status(204);\n});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken2}}"
-              }
-            ],
-            "url": {
-              "raw": "http://localhost:5000/api/comments/{{commentId}}",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5000",
-              "path": [
-                "api",
-                "comments",
-                "{{commentId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
           "name": "Delete comment - malformed id",
           "event": [
             {
@@ -3938,7 +3846,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 400\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error invalid id is returned\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"comment\") || msg.includes(\"id\") || msg.includes(\"invalid\") || msg.includes(\"object\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error invalid id is returned\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"comment\") || msg.includes(\"id\") || msg.includes(\"invalid\") || msg.includes(\"object\");\n    });\n});"
                 ]
               }
             }
@@ -3975,7 +3883,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 401\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(401);\n});\n\npm.test(\"Auth error is returned\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"auth\") || msg.includes(\"token\") || msg.includes(\"unauthorized\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 401\", function () {\n    pm.response.to.have.status(401);\n});\n\npm.test(\"Auth error is returned\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"auth\") || msg.includes(\"token\") || msg.includes(\"unauthorized\");\n    });\n});"
                 ]
               }
             }
@@ -4007,7 +3915,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 403\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(403);\n});\n\npm.test(\"Authorisation error is returned\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"forbidden\") || msg.includes(\"owner\") || msg.includes(\"authorize\") || msg.includes(\"permission\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 403\", function () {\n    pm.response.to.have.status(403);\n});\n\npm.test(\"Authorisation error is returned\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"forbidden\") || msg.includes(\"owner\") || msg.includes(\"authorize\") || msg.includes(\"permission\");\n    });\n});"
                 ]
               }
             }
@@ -4044,7 +3952,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 404\", function () {\n    const json = pm.response.json();\n    pm.response.to.have.status(404);\n});\n\npm.test(\"Missing comment is reported\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"not found\") || msg.includes(\"comment\") || msg.includes(\"missing\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 404\", function () {\n    pm.response.to.have.status(404);\n});\n\npm.test(\"Missing comment is reported\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"not found\") || msg.includes(\"comment\") || msg.includes(\"missing\");\n    });\n});"
                 ]
               }
             }
@@ -4068,6 +3976,43 @@
                 "api",
                 "comments",
                 "507f1f77bcf86cd799439013"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete comment - successfully deleted",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {\n    pm.response.to.have.status(204);\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken2}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/comments/{{commentId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments",
+                "{{commentId}}"
               ]
             }
           },

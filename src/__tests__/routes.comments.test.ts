@@ -477,7 +477,7 @@ describe('Comment routes', () => {
             expect(response.status).toBe(400);
             expect(response.body).toEqual({
                 error: 'Invalid comment data',
-                details: ['Invalid movie ID'],
+                details: [{ field: 'movie_id', message: 'Invalid movie ID' }],
             });
             expect(mockedUserServices.getUser).not.toHaveBeenCalled();
             expect(mockedCommentServices.createComment).not.toHaveBeenCalled();

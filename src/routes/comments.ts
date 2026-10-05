@@ -7,6 +7,11 @@ import mongoose from 'mongoose';
 
 const router = Router();
 
+/**
+ * Converts a comment document to a public format by removing sensitive information.
+ * @param commentDocument A comment document from the database.
+ * @returns A public representation of the comment.
+ */
 function toPublicComment(commentDocument: unknown): Record<string, unknown> {
   const comment = commentDocument as Record<string, unknown> & {
     toObject?: () => Record<string, unknown>;
@@ -137,7 +142,10 @@ router.post('/', async (req: Request, res: Response) => {
     if (!result.success) {
       return res.status(400).json({
         error: 'Invalid comment data',
-        details: result.error.issues.map(issue => issue.message)
+        details: result.error.issues.map(issue => ({
+          field: issue.path.join('.'),
+          message: issue.message
+        }))
       });
     }
 
