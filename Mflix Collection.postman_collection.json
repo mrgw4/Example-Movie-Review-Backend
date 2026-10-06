@@ -2715,7 +2715,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Validation error is present\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"Invalid\") || msg.includes(\"missing\") || msg.includes(\"field\");\n    });\n});"
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Validation error is present\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.details).to.be.an(\"array\").that.is.not.empty;\n    pm.expect(json.details[0].field.toLowerCase()).to.include(\"text\");\n});"
                 ]
               }
             }
