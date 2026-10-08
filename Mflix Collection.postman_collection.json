@@ -2417,7 +2417,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {\n  pm.response.to.have.status(200);\n});\npm.test(\"Token and user present\", function () {\n  const json = pm.response.json();\n  pm.expect(json).to.have.property('token');\n  pm.expect(json).to.have.property('user');\n  pm.environment.set('authToken2', json.token);\n  pm.environment.set('userId2', json.user.id || json.user._id || '');\n});"
+                  "pm.test(\"Status code is 200\", function () {\n  pm.response.to.have.status(200);\n});\npm.test(\"Token and user present\", function () {\n  const json = pm.response.json();\n  pm.expect(json).to.have.property('token');\n  pm.expect(json).to.have.property('user');\n  pm.environment.set('authToken2', json.token);\n  pm.environment.set('userId2', json.user.id || json.user._id || '');\n  pm.environment.set(\"userId2\",json.user.id || json.user._id || \"\");\n  pm.expect(pm.environment.get(\"authToken2\")).to.eql(json.token);\n  pm.expect(pm.environment.get(\"userId2\")).to.eql(json.user.id || json.user._id || \"\");\n});"
                 ]
               }
             }
@@ -2433,6 +2433,106 @@
             "body": {
               "mode": "raw",
               "raw": "{\"email\":\"{{uniqueEmail2}}\",\"password\":\"password123\"}",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/users/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "users",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create user 4 - for comment testing",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// generate a unique email for this run\npm.environment.set('uniqueEmail2', 'testuser2_' + Date.now() + '@example.com');\npm.environment.unset('authToken2');\npm.environment.unset('userId2');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\n  pm.response.to.have.status(201);\n});\npm.test(\"Response contains success message\", function () {\n  const json = pm.response.json();\n  pm.expect(json).to.have.property('message');\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Test User 3\",\"email\":\"q{{uniqueEmail2}}\",\"password\":\"password1234\"}",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login user 4 - for comment testing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\n  pm.response.to.have.status(200);\n});\npm.test(\"Token and user present\", function () {\n  const json = pm.response.json();\n  pm.expect(json).to.have.property('token');\n  pm.expect(json).to.have.property('user');\n  pm.environment.set('authToken3', json.token);\n  pm.environment.set('userId3', json.user.id || json.user._id || '');\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"q{{uniqueEmail2}}\",\"password\":\"password1234\"}",
               "options": {
                 "raw": {
                   "language": "text"
@@ -3925,7 +4025,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{authToken}}"
+                "value": "Bearer {{authToken3}}"
               }
             ],
             "url": {
@@ -3989,7 +4089,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 204\", function () {\n    pm.response.to.have.status(204);\n});"
+                  "pm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});"
                 ]
               }
             }
