@@ -97,7 +97,7 @@ router.post('/', async (req: Request, res: Response) => {
     const rawAuth = req.headers.authorization;
 
     if (rawAuth === undefined) {
-      return res.status(400).json({
+      return res.status(401).json({
         error: 'Authorization token is required'
       });
     }
@@ -191,7 +191,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
     const rawAuth = req.headers.authorization;
 
     if (rawAuth === undefined) {
-      return res.status(400).json({
+      return res.status(401).json({
         error: 'Authorization token is required'
       });
     }
@@ -243,7 +243,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     const rawAuth = req.headers.authorization;
 
     if (rawAuth === undefined) {
-      return res.status(400).json({
+      return res.status(401).json({
         error: 'Authorization token is required'
       });
     }

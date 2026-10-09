@@ -135,10 +135,10 @@ describe('users route', () => {
     expect(response.body).toEqual({ error: 'Invalid token' });
   });
 
-  it('returns 400 when logout has no token', async () => {
+  it('returns 401 when logout has no token', async () => {
     const response = await request(app).post('/api/users/logout');
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(401);
     expect(response.body).toEqual({ error: 'Authorization token is required' });
   });
 
@@ -373,12 +373,12 @@ describe('users route', () => {
     expect(response.body.user.id).toBe('fallback-user-id');
   });
 
-  it('returns 400 when update has no authorization header', async () => {
+  it('returns 401 when update has no authorization header', async () => {
     const response = await request(app)
       .put('/api/users/507f1f77bcf86cd799439011')
       .send({ name: 'Updated Name' });
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(401);
     expect(response.body).toEqual({ error: 'Authorization token is required' });
   });
 
@@ -521,12 +521,12 @@ describe('users route', () => {
     expect(response.body.message).toBe('Password changed successfully');
   });
 
-  it('returns 400 when change-password has no authorization header', async () => {
+  it('returns 401 when change-password has no authorization header', async () => {
     const response = await request(app)
       .post('/api/users/507f1f77bcf86cd799439011/change-password')
       .send({ oldPassword: 'old-pass', newPassword: 'new-pass' });
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(401);
     expect(response.body).toEqual({ error: 'Authorization token is required' });
   });
 
@@ -678,11 +678,11 @@ describe('users route', () => {
     expect(response.body.message).toBe('User deleted successfully');
   });
 
-  it('returns 400 when delete has no authorization header', async () => {
+  it('returns 401 when delete has no authorization header', async () => {
     const response = await request(app)
       .delete('/api/users/507f1f77bcf86cd799439011');
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(401);
     expect(response.body).toEqual({ error: 'Authorization token is required' });
   });
 

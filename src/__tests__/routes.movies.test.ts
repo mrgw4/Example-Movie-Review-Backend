@@ -232,11 +232,11 @@ describe('movies route', () => {
     expect(response.body).toEqual({ error: 'Failed to create movie' });
   });
 
-  it('returns 400 when post has no authorization header', async () => {
+  it('returns 401 when post has no authorization header', async () => {
     const response = await request(app)
       .post('/api/movies');
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(401);
     expect(response.body).toEqual({
       error: 'Authorization token is required'
     });
@@ -442,12 +442,12 @@ describe('movies route', () => {
     expect(response.body).toEqual({ error: 'Invalid movie id format' });
   });
 
-  it('returns 400 when update has no authorization header', async () => {
+  it('returns 401 when update has no authorization header', async () => {
     const response = await request(app)
       .put('/api/movies/507f1f77bcf86cd799439011')
       .send({ title: 'Updated Title' });
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(401);
     expect(response.body).toEqual({
       error: 'Authorization token is required'
     });
@@ -596,11 +596,11 @@ describe('movies route', () => {
       .toHaveBeenCalledWith('507f1f77bcf86cd799439011');
   });
 
-  it('returns 400 when delete has no authorization header', async () => {
+  it('returns 401 when delete has no authorization header', async () => {
     const response = await request(app)
       .delete('/api/movies/507f1f77bcf86cd799439011');
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(401);
     expect(response.body).toEqual({
       error: 'Authorization token is required'
     });

@@ -513,7 +513,7 @@ describe('Comment routes', () => {
             expect(mockedCommentServices.createComment).not.toHaveBeenCalled();
         });
 
-        it('returns 400 when the authorization header is missing', async () => {
+        it('returns 401 when the authorization header is missing', async () => {
             const response = await request(app)
                 .post('/api/comments')
                 .send({
@@ -521,7 +521,7 @@ describe('Comment routes', () => {
                     text: commentTestData.text,
                 });
 
-            expect(response.status).toBe(400);
+            expect(response.status).toBe(401);
             expect(mockedUserServices.verifySessionToken).not.toHaveBeenCalled();
         });
 
@@ -759,12 +759,12 @@ describe('Comment routes', () => {
             expect(mockedUserServices.canEditComment).not.toHaveBeenCalled();
         });
 
-        it('returns 400 when authorization is missing', async () => {
+        it('returns 401 when authorization is missing', async () => {
             const response = await request(app)
                 .put(`/api/comments/${commentTestData._id}`)
                 .send({ text: 'Updated comment' });
 
-            expect(response.status).toBe(400);
+            expect(response.status).toBe(401);
             expect(response.body).toEqual({ error: 'Authorization token is required' });
             expect(mockedCommentServices.getCommentById).not.toHaveBeenCalled();
         });
@@ -959,11 +959,11 @@ describe('Comment routes', () => {
             expect(mockedCommentServices.getCommentById).not.toHaveBeenCalled();
         });
 
-        it('returns 400 when authorization is missing', async () => {
+        it('returns 401 when authorization is missing', async () => {
             const response = await request(app)
                 .delete(`/api/comments/${commentTestData._id}`);
 
-            expect(response.status).toBe(400);
+            expect(response.status).toBe(401);
             expect(response.body).toEqual({ error: 'Authorization token is required' });
         });
 
