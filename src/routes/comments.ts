@@ -2,7 +2,6 @@ import { Router, Request, Response } from 'express';
 import * as comment from '../services/commentServices';
 import { commentInputSchema, commentQuerySchema, commentSchema, commentUpdateSchema } from '../schemas/commentSchema';
 import * as user from '../services/userServices';
-import { z } from 'zod';
 import mongoose from 'mongoose';
 
 const router = Router();
@@ -30,7 +29,20 @@ function toPublicComment(commentDocument: unknown): Record<string, unknown> {
  */
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const query = commentQuerySchema.parse(req.query);
+
+    const result = commentQuerySchema.safeParse(req.query);
+
+    if (!result.success) {
+      return res.status(400).json({
+        error: 'Invalid comment query data',
+        details: result.error.issues.map(issue => ({
+          field: issue.path.join('.'),
+          message: issue.message
+        }))
+      });
+    }
+
+    const query = result.data;
 
     if (!query.movieId && !query.userId) {
       return res.status(400).json({
@@ -40,14 +52,14 @@ router.get('/', async (req: Request, res: Response) => {
 
     const skip = (query.page - 1) * query.limit;
 
-    const comments = await comment.getComments({ userId: query.userId, movieId: query.movieId }, query.limit, skip);
+    const comments = await comment.getComments({ userId: query.userId, movieId: query.movieId }, skip, query.limit);
 
     const total = await comment.getTotalComments({ userId: query.userId, movieId: query.movieId });
 
     const totalPages = Math.ceil(total / query.limit);
 
     return res.status(200).json({
-      data: comments.map(toPublicComment),
+      comments: comments.map(toPublicComment),
       pagination: {
         page: query.page,
         limit: query.limit,
@@ -59,12 +71,6 @@ router.get('/', async (req: Request, res: Response) => {
     });
 
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: 'Invalid query parameters',
-        details: error.issues.map(issue => issue.message)
-      });
-    }
 
     if (error instanceof Error && error.message.includes('not found')) {
       return res.status(400).json({
