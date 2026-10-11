@@ -60,7 +60,7 @@ describe('Comment routes', () => {
             expect(response.status).toBe(200);
 
             expect(response.body).toEqual({
-                data: [publicCommentTestData],
+                comments: [publicCommentTestData],
                 pagination: {
                     page: 1,
                     limit: 20,
@@ -78,8 +78,8 @@ describe('Comment routes', () => {
                     userId: undefined,
                     movieId: commentTestData.movie_id,
                 },
-                20,
-                0
+                0,
+                20
             );
 
             expect(
@@ -112,8 +112,8 @@ describe('Comment routes', () => {
                     userId: validId,
                     movieId: undefined,
                 },
-                20,
-                0
+                0,
+                20
             );
 
             expect(
@@ -145,8 +145,8 @@ describe('Comment routes', () => {
                     userId: validId,
                     movieId: commentTestData.movie_id,
                 },
-                20,
-                0
+                0,
+                20
             );
 
             expect(
