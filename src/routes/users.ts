@@ -93,7 +93,7 @@ router.post('/logout', async (req: Request, res: Response): Promise<Response | v
         const rawAuth = req.headers.authorization;
 
         if (rawAuth === undefined) {
-            return res.status(400).json({
+            return res.status(401).json({
                 error: 'Authorization token is required'
             });
         }
@@ -139,8 +139,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<Response | void>
     }
 
     try {
-        const rawAuth = req.headers.authorization ?? '';
-        const authHeader = typeof rawAuth === 'string' ? rawAuth : String(rawAuth);
+        const authHeader = req.headers.authorization ?? '';
         const token = authHeader.replace(/^\s*Bearer\s+/i, '').trim();
         let isVerified = false;
 
@@ -201,9 +200,9 @@ router.post('/', async (req: Request, res: Response) => {
         }
         else {
             const validated = CreateUserSchema.parse({ name, email, password });
-            await user.createUser(validated);
+            const userRecord = await user.createUser(validated);
 
-            return res.status(201).json({ message: 'User created successfully' });
+            return res.status(201).json({ message: 'User created successfully', user: { _id: userRecord._id, name: userRecord.name } });
         }
     }
     catch (error) {
@@ -230,7 +229,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
         const rawAuth = req.headers.authorization;
 
         if (rawAuth === undefined) {
-            return res.status(400).json({
+            return res.status(401).json({
                 error: 'Authorization token is required'
             });
         }
@@ -296,7 +295,7 @@ router.put('/:id', async (req: Request, res: Response): Promise<Response | void>
         const rawAuth = req.headers.authorization;
 
         if (rawAuth === undefined) {
-            return res.status(400).json({
+            return res.status(401).json({
                 error: 'Authorization token is required'
             });
         }
@@ -375,7 +374,7 @@ router.post('/:id/change-password', async (req: Request, res: Response): Promise
         const rawAuth = req.headers.authorization;
 
         if (rawAuth === undefined) {
-            return res.status(400).json({
+            return res.status(401).json({
                 error: 'Authorization token is required'
             });
         }

@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import Admin from '../models/Admin';
 import mongoose from 'mongoose';
+import Comment from '../models/Comment';
 
 const SALT_ROUNDS = 12;
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
@@ -147,6 +148,28 @@ export async function verifyAdmin(token: string) {
 }
 
 /**
+ * Checks whether a valid session belongs to the comment author or an admin.
+ * @param token The session token to verify.
+ * @param commentEmail The email stored on the comment.
+ * @returns Whether the session is authorized to edit the comment.
+ * @throws {Error} when the session is invalid or an admin lookup fails.
+ */
+export async function canEditComment(token: string, commentEmail: string) {
+    const { userId } = await verifySessionToken(token);
+    const currentUser = await User.findById(userId);
+
+    if (currentUser?.email === commentEmail) {
+        return true;
+    }
+
+    const admin = await Admin.findOne({
+        userId: new mongoose.Types.ObjectId(userId),
+    });
+
+    return Boolean(admin);
+}
+
+/**
  * Deletes a session token from the database, logging the user out.
  * @param token The JWT token for the session.
  * @returns Promise resolving to the deleted session document.
@@ -201,15 +224,51 @@ export async function updateUser(userId: string, updateData: { name?: string; em
         }
     }
 
-    // Update the fields
+    const previousName = user.name;
+    const previousEmail = user.email;
+    const commentUpdates: { name?: string; email?: string } = {};
+
     if (updateData.name) {
         user.name = updateData.name;
+        if (updateData.name !== previousName) {
+            commentUpdates.name = updateData.name;
+        }
     }
     if (updateData.email) {
         user.email = updateData.email;
+        if (updateData.email !== previousEmail) {
+            commentUpdates.email = updateData.email;
+        }
     }
 
-    return user.save();
+    if (Object.keys(commentUpdates).length > 0) {
+        await Comment.updateMany(
+            { email: previousEmail },
+            { $set: commentUpdates }
+        );
+    }
+
+    try {
+        return await user.save();
+    } catch (error) {
+        if (Object.keys(commentUpdates).length > 0) {
+            user.name = previousName;
+            user.email = previousEmail;
+            const commentRollback: { name?: string; email?: string } = {};
+            if (commentUpdates.name) {
+                commentRollback.name = previousName;
+            }
+            if (commentUpdates.email) {
+                commentRollback.email = previousEmail;
+            }
+            await Comment.updateMany(
+                { email: commentUpdates.email ?? previousEmail },
+                { $set: commentRollback }
+            );
+        }
+
+        throw error;
+    }
 }
 
 /**

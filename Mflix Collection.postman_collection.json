@@ -1,11 +1,11 @@
 {
   "info": {
-    "_postman_id": "192bbf8c-38ca-42ff-a7d4-cc9a76db6581",
+    "_postman_id": "1cbc41c3-3dcb-4fa5-b61a-b8878d713f6a",
     "name": "Blog Collection",
     "description": "API collection for the example blog backend. Includes user tests (create/login/get/update/change-password/logout/delete) and movie tests (CRUD operations) with comprehensive negative tests and validation error scenarios.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "55997364",
-    "_collection_link": "https://go.postman.co/collection/55997364-192bbf8c-38ca-42ff-a7d4-cc9a76db6581?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/55997364-1cbc41c3-3dcb-4fa5-b61a-b8878d713f6a?source=collection_link"
   },
   "item": [
     {
@@ -2351,6 +2351,1950 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Comment Tests",
+      "item": [
+        {
+          "name": "Create user 3 - for comment testing",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// generate a unique email for this run",
+                  "pm.collectionVariables.set('uniqueEmail2', 'testuser2_' + Date.now() + '@example.com');",
+                  "pm.collectionVariables.unset('authToken2');",
+                  "pm.collectionVariables.unset('userId2');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\n  pm.response.to.have.status(201);\n});\npm.test(\"Response contains success message\", function () {\n  const json = pm.response.json();\n  pm.expect(json).to.have.property('message');\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Test User 2\",\"email\":\"{{uniqueEmail2}}\",\"password\":\"password123\"}",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login user 3 - for comment testing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\n  pm.response.to.have.status(200);\n});\npm.test(\"Token and user present\", function () {\n  const json = pm.response.json();\n  pm.expect(json).to.have.property('token');\n  pm.expect(json).to.have.property('user');\n  pm.collectionVariables.set('authToken2', json.token);\n  pm.collectionVariables.set('userId2', json.user.id || json.user._id || '');\n  pm.collectionVariables.set(\"userName2\",json.user.name);\n  pm.expect(pm.collectionVariables.get(\"authToken2\")).to.eql(json.token);\n  pm.expect(pm.collectionVariables.get(\"userId2\")).to.eql(json.user.id || json.user._id || \"\");\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{uniqueEmail2}}\",\"password\":\"password123\"}",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/users/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "users",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create user 4 - for comment testing",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\n    'uniqueEmail2',\n    'testuser2_' + Date.now() + '@example.com'\n);\npm.collectionVariables.unset('authToken3');\npm.collectionVariables.unset('userId3');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\n  pm.response.to.have.status(201);\n});\npm.test(\"Response contains success message\", function () {\n  const json = pm.response.json();\n  pm.expect(json).to.have.property('message');\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Test User 3\",\"email\":\"q{{uniqueEmail2}}\",\"password\":\"password1234\"}",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login user 4 - for comment testing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Token and user present\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('token');",
+                  "  pm.expect(json).to.have.property('user');",
+                  "  pm.collectionVariables.set('authToken3', json.token);",
+                  "  pm.collectionVariables.set('userId3', json.user.id || json.user._id || '');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"q{{uniqueEmail2}}\",\"password\":\"password1234\"}",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/users/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "users",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login as reset admin 2 - for comment testing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Token is returned\", function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('token');",
+                  "  pm.collectionVariables.set('authToken', json.token);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"admin@test.local\",\"password\":\"admin123\"}",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/users/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "users",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create movie 2 - for comment testing",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset('movieId');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\n  pm.response.to.have.status(201);\n});\npm.test(\"Movie created successfully\", function () {\n  const json = pm.response.json();\n  pm.expect(json).to.have.property('message');\n  pm.expect(json.message.toLowerCase()).to.include('created');\n});\n\npm.test(\"Save movieId\", function () {\n    const json = pm.response.json();\n    pm.expect(json.movie).to.have.property(\"_id\");\n    pm.collectionVariables.set(\"movieId\", json.movie._id);\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\":\"Test Movie\",\"year\":2024,\"type\":\"movie\",\"awards\":{\"wins\":5,\"nominations\":10,\"text\":\"5 wins\"},\"imdb\":{\"id\":123456,\"rating\":7.5,\"votes\":1000},\"num_mflix_comments\":25,\"lastupdated\":\"2024-01-01T00:00:00Z\"}",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/movies",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "movies"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create comment - for comment testing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"auth2 is present\", function () {\n    const token = pm.collectionVariables.get(\"authToken2\");\n\n    console.log(\"Collection token exists:\", !!token);\n    console.log(\"Token length:\", token ? token.length : 0);\n\n    pm.expect(token, \"authToken2 collection variable must exist\")\n        .to.be.a(\"string\")\n        .and.not.be.empty;\n});\n\npm.test(\"Status code is 201\", function () {\n    pm.response.to.have.status(201);\n});\n\npm.test(\"Response has correct comment structure\", function () {\n    const json = pm.response.json().comment;\n    pm.expect(json).to.have.property(\"_id\");\n    pm.expect(json).to.have.property(\"name\");\n    pm.expect(json).to.have.property(\"movie_id\");\n    pm.expect(json).to.have.property(\"text\");\n});\n\npm.test(\"Comment is linked to the correct movie\", function () {\n    const json = pm.response.json().comment;\n    const movieId = pm.collectionVariables.get(\"movieId\");\n    pm.expect(json.movie_id).to.equal(movieId);\n});\n\npm.test(\"Comment text matches submitted text\", function () {\n    const json = pm.response.json().comment;\n    pm.expect(json.text).to.equal(\"A great movie, thoroughly enjoyed it.\");\n});\n\npm.test(\"Save commentId to environment\", function () {\n    const json = pm.response.json().comment;\n    pm.expect(json._id).to.be.a(\"string\").and.not.be.empty;\n    pm.collectionVariables.set(\"commentId\", json._id);\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken2}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"text\": \"A great movie, thoroughly enjoyed it.\", \"movie_id\": \"{{movieId}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/comments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST \"http://localhost:5000/api/comments/{{movieId}}\" -H \"Content-Type: application/json\" -H \"Authorization: Bearer {{authToken2}}\" -d \"{\\\"text\\\": \\\"A great movie, thoroughly enjoyed it.\\\"}\""
+          },
+          "response": []
+        },
+        {
+          "name": "Create comment - invalid authentication token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () {\n    pm.response.to.have.status(401);\n});\n\npm.test(\"Error message indicates invalid token\", function () {\n    const json = pm.response.json();\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"token\") || msg.includes(\"auth\") || msg.includes(\"invalid\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{bearer_token_18qx}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"text\": \"Bad token comment\", \"movie_id\": \"{{movieId}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/comments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create comment - missing authentication",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 401\", function () {\n    pm.response.to.have.status(401);\n});\n\npm.test(\"Authentication error returned\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"auth\") || msg.includes(\"token\") || msg.includes(\"login\") || msg.includes(\"unauthorized\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": ""
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"text\": \"Missing auth test comment\", \"movie_id\": \"{{movieId}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/comments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create comment - missing required field",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Validation error is present\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.details).to.be.an(\"array\").that.is.not.empty;\n    pm.expect(json.details[0].field.toLowerCase()).to.include(\"text\");\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken2}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"movie_id\": \"{{movieId}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/comments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create comment - invalid field type",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error mentions invalid type\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"type\") || msg.includes(\"invalid\") || msg.includes(\"string\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken2}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"text\": 12345, \"movie_id\": \"{{movieId}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/comments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create comment - invalid email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error mentions email validation\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"email\") || msg.includes(\"invalid\") || msg.includes(\"format\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken2}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"text\": \"Bad email check\", \"email\": \"not-an-email\", \"movie_id\": \"{{movieId}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/comments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create comment - invalid movie_id format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error references movie_id or ObjectId\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"movie_id\") || msg.includes(\"movieid\") || msg.includes(\"objectid\") || msg.includes(\"invalid\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken2}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"text\": \"Bad movie id\", \"movie_id\": \"notanobjectid\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/comments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create comment - referenced movie doesn't exist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 404\", function () {\n    pm.response.to.have.status(404);\n});\n\npm.test(\"Error indicates missing movie\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"movie\") || msg.includes(\"not found\") || msg.includes(\"missing\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken2}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"text\": \"Movie not found\", \"movie_id\": \"507f1f77bcf86cd799439011\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/comments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get comment by id - valid comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains comment data\", function () {",
+                  "    pm.expect(json).to.have.property(\"_id\");",
+                  "    pm.expect(json).to.have.property(\"movie_id\");",
+                  "    pm.expect(json).to.have.property(\"text\");",
+                  "});",
+                  "",
+                  "pm.test(\"Returned comment matches saved comment id\", function () {",
+                  "    pm.expect(json._id).to.equal(pm.collectionVariables.get(\"commentId\"));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/comments/{{commentId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments",
+                "{{commentId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get comment by id - malformed object id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error message is present\", function () {\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error references invalid comment id\", function () {\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"comment\") || msg.includes(\"id\") || msg.includes(\"invalid\") || msg.includes(\"object\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/comments/notanobjectid",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments",
+                "notanobjectid"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get comment by id - comment not found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 404\", function () {\n    pm.response.to.have.status(404);\n});\n\npm.test(\"Error is returned\", function () {\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error identifies missing comment\", function () {\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"comment\") || msg.includes(\"not found\") || msg.includes(\"missing\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/comments/507f1f77bcf86cd799439011",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments",
+                "507f1f77bcf86cd799439011"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get comments by userId - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Response has pagination structure\", function () {\n    pm.expect(json).to.have.property(\"comments\");\n    pm.expect(json).to.have.property(\"pagination\");\n});\n\npm.test(\"Comments is an array\", function () {\n    pm.expect(json.comments).to.be.an(\"array\");\n});\n\npm.test(\"Pagination fields are present\", function () {\n    pm.expect(json.pagination).to.have.property(\"page\");\n    pm.expect(json.pagination).to.have.property(\"limit\");\n    pm.expect(json.pagination).to.have.property(\"total\");\n    pm.expect(json.pagination).to.have.property(\"pages\");\n});\n\npm.test(\"Every comment belongs to the requested userId\", function () {\n    const userName2 = pm.collectionVariables.get(\"userName2\");\n    pm.expect(userName2, \"userId2 collection var must be set\").to.be.a(\"string\").and.not.be.empty;\n    json.comments.forEach(function (comment) {\n        const commentUserName = (comment.name).toString();\n        pm.expect(commentUserName).to.equal(userName2);\n    });\n});\n\npm.test(\"Returned page matches requested page\", function () {\n    pm.expect(json.pagination.page).to.equal(1);\n});\n\npm.test(\"Returned limit matches requested limit\", function () {\n    pm.expect(json.pagination.limit).to.equal(10);\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/comments?userId={{userId2}}&page=1&limit=10",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{userId2}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get comments by movieId - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has pagination structure\", function () {",
+                  "    pm.expect(json).to.have.property(\"comments\");",
+                  "    pm.expect(json).to.have.property(\"pagination\");",
+                  "});",
+                  "",
+                  "pm.test(\"Comments is an array\", function () {",
+                  "    pm.expect(json.comments).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"Pagination fields are present\", function () {",
+                  "    pm.expect(json.pagination).to.have.property(\"page\");",
+                  "    pm.expect(json.pagination).to.have.property(\"limit\");",
+                  "    pm.expect(json.pagination).to.have.property(\"total\");",
+                  "    pm.expect(json.pagination).to.have.property(\"pages\");",
+                  "});",
+                  "",
+                  "pm.test(\"Every comment belongs to the requested movieId\", function () {",
+                  "    const movieId = pm.collectionVariables.get(\"movieId\");",
+                  "    pm.expect(movieId, \"movieId collection var must be set\").to.be.a(\"string\").and.not.be.empty;",
+                  "    json.comments.forEach(function (comment) {",
+                  "        const commentMovieId = (comment.movie_id || comment.movieId || \"\").toString();",
+                  "        pm.expect(commentMovieId).to.equal(movieId);",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test(\"Returned page matches requested page\", function () {",
+                  "    pm.expect(json.pagination.page).to.equal(1);",
+                  "});",
+                  "",
+                  "pm.test(\"Returned limit matches requested limit\", function () {",
+                  "    pm.expect(json.pagination.limit).to.equal(10);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/comments?movieId={{movieId}}&page=1&limit=10",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments"
+              ],
+              "query": [
+                {
+                  "key": "movieId",
+                  "value": "{{movieId}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Generated from cURL: curl -X GET \"http://localhost:5000/api/comments?movieId={{movieId}}&page=1&limit=10\" -H \"Authorization: Bearer {{authToken2}}\""
+          },
+          "response": []
+        },
+        {
+          "name": "Get comments by userId and movieId - success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Response has pagination structure\", function () {\n    pm.expect(json).to.have.property(\"comments\");\n    pm.expect(json).to.have.property(\"pagination\");\n});\n\npm.test(\"Comments is an array\", function () {\n    pm.expect(json.comments).to.be.an(\"array\");\n});\n\npm.test(\"Pagination fields are present\", function () {\n    pm.expect(json.pagination).to.have.property(\"page\");\n    pm.expect(json.pagination).to.have.property(\"limit\");\n    pm.expect(json.pagination).to.have.property(\"total\");\n    pm.expect(json.pagination).to.have.property(\"pages\");\n});\n\npm.test(\"Every comment matches both userId and movieId\", function () {\n    const userName2 = pm.collectionVariables.get(\"userName2\");\n    const movieId = pm.collectionVariables.get(\"movieId\");\n    json.comments.forEach(function (comment) {\n        const commentUserName = (comment.name).toString();\n        const commentMovieId = (comment.movie_id || comment.movieId || \"\").toString();\n        pm.expect(commentUserName).to.equal(userName2);\n        pm.expect(commentMovieId).to.equal(movieId);\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/comments?userId={{userId2}}&movieId={{movieId}}&page=1&limit=10",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{userId2}}"
+                },
+                {
+                  "key": "movieId",
+                  "value": "{{movieId}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Generated from cURL: curl -X GET \"http://localhost:5000/api/comments?userId={{userId2}}&movieId={{movieId}}&page=1&limit=10\" -H \"Authorization: Bearer {{authToken2}}\""
+          },
+          "response": []
+        },
+        {
+          "name": "Get comments - valid filters no matches",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Comments array is empty\", function () {",
+                  "    pm.expect(json.comments).to.be.an(\"array\").that.is.empty;",
+                  "});",
+                  "",
+                  "pm.test(\"Total reflects actual count not zero\", function () {",
+                  "    pm.expect(json.pagination.total).to.be.a(\"number\");",
+                  "});",
+                  "",
+                  "pm.test(\"Pagination page reflects requested page\", function () {",
+                  "    pm.expect(json.pagination.page).to.equal(9999);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken2}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/comments?userId={{userId2}}&movieId={{movieId}}&page=9999&limit=10",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{userId2}}"
+                },
+                {
+                  "key": "movieId",
+                  "value": "{{movieId}}"
+                },
+                {
+                  "key": "page",
+                  "value": "9999"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Generated from cURL: curl -X GET \"http://localhost:5000/api/comments?userId={{userId2}}&movieId={{movieId}}&page=9999&limit=10\" -H \"Authorization: Bearer {{authToken2}}\""
+          },
+          "response": []
+        },
+        {
+          "name": "Get comments - no filters",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Error message is present\", function () {",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "});",
+                  "",
+                  "pm.test(\"Error indicates a filter is required\", function () {",
+                  "    pm.expect(json.error.toLowerCase()).to.satisfy(function(msg) {",
+                  "        return msg.includes(\"required\") || msg.includes(\"filter\") || msg.includes(\"userid\") || msg.includes(\"movieid\");",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/comments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments"
+              ]
+            },
+            "description": "Generated from cURL: curl -X GET \"http://localhost:5000/api/comments\""
+          },
+          "response": []
+        },
+        {
+          "name": "Get comments - invalid userId format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error message is present\", function () {\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error references userId or invalid format\", function () {\n    pm.expect(json.error.toLowerCase()).to.satisfy(function(msg) {\n        return msg.includes(\"userid\") || msg.includes(\"user_id\") || msg.includes(\"invalid\") || msg.includes(\"id\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/comments?userId=notanobjectid",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "notanobjectid"
+                }
+              ]
+            },
+            "description": "Generated from cURL: curl -X GET \"http://localhost:5000/api/comments?userId=notanobjectid\""
+          },
+          "response": []
+        },
+        {
+          "name": "Get comments - invalid movieId format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error message is present\", function () {\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error references movieId or invalid format\", function () {\n    pm.expect(json.error.toLowerCase()).to.satisfy(function(msg) {\n        return msg.includes(\"movieid\") || msg.includes(\"movie_id\") || msg.includes(\"invalid\") || msg.includes(\"id\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/comments?movieId=notanobjectid",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments"
+              ],
+              "query": [
+                {
+                  "key": "movieId",
+                  "value": "notanobjectid"
+                }
+              ]
+            },
+            "description": "Generated from cURL: curl -X GET \"http://localhost:5000/api/comments?movieId=notanobjectid\""
+          },
+          "response": []
+        },
+        {
+          "name": "Get comments - invalid page",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error message is present\", function () {\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error references page parameter\", function () {\n    pm.expect(json.error.toLowerCase()).to.satisfy(function(msg) {\n        return msg.includes(\"page\") || msg.includes(\"invalid\") || msg.includes(\"number\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/comments?userId={{userId2}}&page=abc",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{userId2}}"
+                },
+                {
+                  "key": "page",
+                  "value": "abc"
+                }
+              ]
+            },
+            "description": "Generated from cURL: curl -X GET \"http://localhost:5000/api/comments?userId={{userId2}}&page=abc\""
+          },
+          "response": []
+        },
+        {
+          "name": "Get comments - invalid limit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error message is present\", function () {\n    pm.expect(json).to.have.property(\"error\");\n});\n\npm.test(\"Error references limit parameter\", function () {\n    pm.expect(json.error.toLowerCase()).to.satisfy(function(msg) {\n        return msg.includes(\"limit\") || msg.includes(\"invalid\") || msg.includes(\"number\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/comments?userId={{userId2}}&limit=abc",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{userId2}}"
+                },
+                {
+                  "key": "limit",
+                  "value": "abc"
+                }
+              ]
+            },
+            "description": "Generated from cURL: curl -X GET \"http://localhost:5000/api/comments?userId={{userId2}}&limit=abc\""
+          },
+          "response": []
+        },
+        {
+          "name": "Get comments - limit exceeds maximum",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error message is present\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json).to.have.property(\"details\");\n    pm.expect(json.details).to.be.an(\"array\").that.is.not.empty;\n    pm.expect(json.details[0]).to.have.property(\"field\", \"limit\");\n});\n\npm.test(\"Error references limit or maximum\", function () {\n    pm.expect(json.details[0].field.toLowerCase()).to.satisfy(function(msg) {\n        return msg.includes(\"limit\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/comments?userId={{userId2}}&limit=101",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{userId2}}"
+                },
+                {
+                  "key": "limit",
+                  "value": "101"
+                }
+              ]
+            },
+            "description": "Generated from cURL: curl -X GET \"http://localhost:5000/api/comments?userId={{userId2}}&limit=101\""
+          },
+          "response": []
+        },
+        {
+          "name": "Update comment - valid update",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Comment was updated\", function () {\n    pm.expect(json).to.have.property(\"_id\");\n    pm.expect(json).to.have.property(\"text\");\n    pm.expect(json.text).to.equal(\"Updated comment text\");\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken2}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"text\": \"Updated comment text\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/comments/{{commentId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments",
+                "{{commentId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update comment - malformed comment id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error indicates invalid comment id\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"comment\") || msg.includes(\"id\") || msg.includes(\"invalid\") || msg.includes(\"object\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken2}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"text\": \"Update invalid id\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/comments/notanobjectid",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments",
+                "notanobjectid"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update comment - invalid request body",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Validation error is returned\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"invalid\") || msg.includes(\"body\") || msg.includes(\"request\") || msg.includes(\"fields\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken2}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"text\": 12345}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/comments/{{commentId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments",
+                "{{commentId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update comment - no valid fields to update",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error mentions no valid fields\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"valid\") || msg.includes(\"field\") || msg.includes(\"update\") || msg.includes(\"empty\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken2}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/comments/{{commentId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments",
+                "{{commentId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update comment - not authenticated",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 401\", function () {\n    pm.response.to.have.status(401);\n});\n\npm.test(\"Authentication error returned\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"auth\") || msg.includes(\"token\") || msg.includes(\"unauthorized\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"text\": \"No auth update\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/comments/{{commentId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments",
+                "{{commentId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update comment - authenticated but not owner",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 403\", function () {\n    pm.response.to.have.status(403);\n});\n\npm.test(\"Forbidden message is returned\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"forbidden\") || msg.includes(\"owner\") || msg.includes(\"authorize\") || msg.includes(\"permission\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken3}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"text\": \"Different user update\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/comments/{{commentId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments",
+                "{{commentId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update comment - comment doesn't exist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 404\", function () {\n    pm.response.to.have.status(404);\n});\n\npm.test(\"Missing comment is reported\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"not found\") || msg.includes(\"comment\") || msg.includes(\"missing\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken2}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"text\": \"Does not exist\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/comments/507f1f77bcf86cd799439012",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments",
+                "507f1f77bcf86cd799439012"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete comment - malformed id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error invalid id is returned\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"comment\") || msg.includes(\"id\") || msg.includes(\"invalid\") || msg.includes(\"object\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken2}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/comments/notanobjectid",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments",
+                "notanobjectid"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete comment - not authenticated",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 401\", function () {\n    pm.response.to.have.status(401);\n});\n\npm.test(\"Auth error is returned\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"auth\") || msg.includes(\"token\") || msg.includes(\"unauthorized\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/comments/{{commentId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments",
+                "{{commentId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete comment - not owner / not authorised",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "",
+                  "pm.test(\"Authorisation error is returned\", function () {",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {",
+                  "        return msg.includes(\"forbidden\") || msg.includes(\"owner\") || msg.includes(\"authorize\") || msg.includes(\"permission\");",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken3}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/comments/{{commentId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments",
+                "{{commentId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete comment - comment doesn't exist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();\n\npm.test(\"Status code is 404\", function () {\n    pm.response.to.have.status(404);\n});\n\npm.test(\"Missing comment is reported\", function () {\n    pm.expect(json).to.have.property(\"error\");\n    pm.expect(json.error.toLowerCase()).to.satisfy(function (msg) {\n        return msg.includes(\"not found\") || msg.includes(\"comment\") || msg.includes(\"missing\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken2}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/comments/507f1f77bcf86cd799439013",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments",
+                "507f1f77bcf86cd799439013"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete comment - successfully deleted",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken2}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/comments/{{commentId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "comments",
+                "{{commentId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset test database",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\n  pm.response.to.have.status(200);\n});\npm.test(\"Reset message present\", function () {\n  const json = pm.response.json();\n  pm.expect(json).to.have.property('message');\n  pm.expect(json.message.toLowerCase()).to.include('reset');\n  pm.expect(json).to.have.property('copiedCollections');\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/testreset/reset",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "testreset",
+                "reset"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "bearer_token_18qx",
+      "value": ""
+    },
+    {
+      "key": "uniqueEmail2",
+      "value": ""
+    },
+    {
+      "key": "authToken3",
+      "value": ""
+    },
+    {
+      "key": "userId3",
+      "value": ""
+    },
+    {
+      "key": "authToken",
+      "value": ""
+    },
+    {
+      "key": "movieId",
+      "value": ""
+    },
+    {
+      "key": "commentId",
+      "value": ""
+    },
+    {
+      "key": "authToken2",
+      "value": ""
+    },
+    {
+      "key": "userId2",
+      "value": ""
+    },
+    {
+      "key": "userName2",
+      "value": ""
     }
   ]
 }

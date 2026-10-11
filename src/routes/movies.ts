@@ -54,8 +54,6 @@ router.get('/', async (req: Request, res: Response) => {
       });
     }
 
-    console.error('Error fetching movies:', error);
-
     return res.status(500).json({
       error: 'Failed to fetch movies'
     });
@@ -99,7 +97,7 @@ router.post('/', async (req: Request, res: Response) => {
     const rawAuth = req.headers.authorization;
 
     if (rawAuth === undefined) {
-      return res.status(400).json({
+      return res.status(401).json({
         error: 'Authorization token is required'
       });
     }
@@ -156,8 +154,10 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
 
-    await movieService.createMovie(req.body);
-    return res.status(201).json({ message: 'Movie created successfully' });
+    const movie = await movieService.createMovie(req.body);
+
+    return res.status(201).json({ message: 'Movie created successfully', movie: movie });
+
   } catch (error) {
     if (error instanceof Error) {
       if (error instanceof mongoose.Error.ValidationError) {
@@ -191,7 +191,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
     const rawAuth = req.headers.authorization;
 
     if (rawAuth === undefined) {
-      return res.status(400).json({
+      return res.status(401).json({
         error: 'Authorization token is required'
       });
     }
@@ -243,7 +243,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     const rawAuth = req.headers.authorization;
 
     if (rawAuth === undefined) {
-      return res.status(400).json({
+      return res.status(401).json({
         error: 'Authorization token is required'
       });
     }
