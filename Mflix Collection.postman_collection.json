@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "1cbc41c3-3dcb-4fa5-b61a-b8878d713f6a",
-    "name": "Blog Collection",
+    "name": "Blog Collection Copy 2",
     "description": "API collection for the example blog backend. Includes user tests (create/login/get/update/change-password/logout/delete) and movie tests (CRUD operations) with comprehensive negative tests and validation error scenarios.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "55997364",
@@ -1143,16 +1143,10 @@
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 401\", function () {",
-                  "  pm.response.to.have.status(401);",
-                  "});",
-                  "pm.test(\"Invalid token message\", function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('error');",
-                  "});"
-                ],
-                "type": "text/javascript"
+                  "pm.test(\"Status code is 401\", function () {\n  pm.response.to.have.status(401);\n});\npm.test(\"Invalid token message\", function () {\n  const json = pm.response.json();\n  pm.expect(json).to.have.property('error');\n  pm.expect(json.error).to.contain('Invalid');\n});"
+                ]
               }
             }
           ],
@@ -1161,7 +1155,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": ""
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
@@ -1467,17 +1461,10 @@
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 401\", function () {",
-                  "  pm.response.to.have.status(401);",
-                  "});",
-                  "pm.test(\"Unauthorized message\", function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('error');",
-                  "  pm.expect(json.error.toLowerCase()).to.include('unauthorized');",
-                  "});"
-                ],
-                "type": "text/javascript"
+                  "pm.test(\"Status code is 401\", function () {\n  pm.response.to.have.status(401);\n});\npm.test(\"Unauthorized message\", function () {\n  const json = pm.response.json();\n  pm.expect(json).to.have.property('error');\n  pm.expect(json.error.toLowerCase()).to.include('invalid or expired token');\n});"
+                ]
               }
             }
           ],
@@ -1511,16 +1498,10 @@
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 400\", function () {",
-                  "  pm.response.to.have.status(400);",
-                  "});",
-                  "pm.test(\"Error message present\", function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('error');",
-                  "});"
-                ],
-                "type": "text/javascript"
+                  "pm.test(\"Status code is 401\", function () {\n  pm.response.to.have.status(401);\n});\npm.test(\"Error message present\", function () {\n  const json = pm.response.json();\n  pm.expect(json).to.have.property('error');\n});"
+                ]
               }
             }
           ],
@@ -4277,10 +4258,6 @@
       "value": ""
     },
     {
-      "key": "movieId",
-      "value": ""
-    },
-    {
       "key": "commentId",
       "value": ""
     },
@@ -4294,6 +4271,10 @@
     },
     {
       "key": "userName2",
+      "value": ""
+    },
+    {
+      "key": "movieId",
       "value": ""
     }
   ]
