@@ -1,11 +1,11 @@
 {
   "info": {
-    "_postman_id": "1cbc41c3-3dcb-4fa5-b61a-b8878d713f6a",
-    "name": "Blog Collection Copy 2",
+    "_postman_id": "76134e9f-8c86-4d8c-b37f-ac0da4c8c31e",
+    "name": "Mflix Collection",
     "description": "API collection for the example blog backend. Includes user tests (create/login/get/update/change-password/logout/delete) and movie tests (CRUD operations) with comprehensive negative tests and validation error scenarios.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "55997364",
-    "_collection_link": "https://go.postman.co/collection/55997364-1cbc41c3-3dcb-4fa5-b61a-b8878d713f6a?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/55997364-76134e9f-8c86-4d8c-b37f-ac0da4c8c31e?source=collection_link"
   },
   "item": [
     {
@@ -1098,18 +1098,10 @@
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "pm.test(\"Logout message\", function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('message');",
-                  "});",
-                  "pm.environment.unset('authToken');",
-                  "pm.environment.unset('userId');"
-                ],
-                "type": "text/javascript"
+                  "pm.test(\"Status code is 200\", function () {\n  pm.response.to.have.status(200);\n});\npm.test(\"Logout message\", function () {\n  const json = pm.response.json();\n  pm.expect(json).to.have.property('message');\n});"
+                ]
               }
             }
           ],
@@ -1180,16 +1172,10 @@
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 400\", function () {",
-                  "  pm.response.to.have.status(400);",
-                  "});",
-                  "pm.test(\"Error message present\", function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('error');",
-                  "});"
-                ],
-                "type": "text/javascript"
+                  "pm.test(\"Status code is 401\", function () {\n  pm.response.to.have.status(401);\n});\npm.test(\"Error message present\", function () {\n  const json = pm.response.json();\n  pm.expect(json).to.have.property('error');\n});"
+                ]
               }
             }
           ],
@@ -2046,12 +2032,12 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 400 or 500\", function () {",
-                  "  pm.expect([400, 500]).to.include(pm.response.code);",
+                  "pm.test(\"Status code is 400\", function () {",
+                  "  pm.response.to.have.status(400);",
                   "});",
-                  "pm.test(\"Error message present\", function () {",
+                  "pm.test(\"Error identifies the invalid movie ID\", function () {",
                   "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('error');",
+                  "  pm.expect(json.error.toLowerCase()).to.include('invalid movie id');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -2258,12 +2244,12 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 400 or 500\", function () {",
-                  "  pm.expect([400, 500]).to.include(pm.response.code);",
+                  "pm.test(\"Status code is 400\", function () {",
+                  "  pm.response.to.have.status(400);",
                   "});",
-                  "pm.test(\"Error message present\", function () {",
+                  "pm.test(\"Error identifies the invalid movie ID\", function () {",
                   "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('error');",
+                  "  pm.expect(json.error.toLowerCase()).to.include('invalid movie id');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -2289,6 +2275,749 @@
                 "api",
                 "movies",
                 "invalidid123"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get movies - title filter and descending sort",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });\npm.test(\"Title filter is applied\", function () {\n  const json = pm.response.json();\n  pm.expect(json.data).to.be.an('array');\n  json.data.forEach(movie => pm.expect(movie.title.toLowerCase()).to.include('the'));\n});\npm.test(\"Results are sorted by year descending\", function () {\n  const movies = pm.response.json().data;\n  for (let i = 1; i < movies.length; i++) {\n    pm.expect(Number(movies[i - 1].year)).to.be.at.least(Number(movies[i].year));\n  }\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/movies?title=the&yearMin=0&yearMax=9999&sort=year&order=desc&limit=10",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "movies"
+              ],
+              "query": [
+                {
+                  "key": "title",
+                  "value": "the"
+                },
+                {
+                  "key": "yearMin",
+                  "value": "0"
+                },
+                {
+                  "key": "yearMax",
+                  "value": "9999"
+                },
+                {
+                  "key": "sort",
+                  "value": "year"
+                },
+                {
+                  "key": "order",
+                  "value": "desc"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get movies - invalid pagination parameters",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () { pm.response.to.have.status(400); });\npm.test(\"Query validation error is returned\", function () {\n  const json = pm.response.json();\n  pm.expect(json.error).to.equal('Invalid query parameters');\n  pm.expect(json.details).to.be.an('array').that.is.not.empty;\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/movies?page=0&limit=101",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "movies"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "101"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get movies - invalid filter range",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () { pm.response.to.have.status(400); });\npm.test(\"Range validation error is returned\", function () {\n  const json = pm.response.json();\n  pm.expect(json.error).to.equal('Invalid query parameters');\n  pm.expect(json.details).to.be.an('array').that.is.not.empty;\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/movies?yearMin=2020&yearMax=2000",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "movies"
+              ],
+              "query": [
+                {
+                  "key": "yearMin",
+                  "value": "2020"
+                },
+                {
+                  "key": "yearMax",
+                  "value": "2000"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create user - for movie authorization tests",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('movieTestEmail', 'movieuser_' + Date.now() + '@example.com');",
+                  "pm.environment.unset('movieUserToken');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"User creation response contains a message\", function () {\n  pm.expect(pm.response.json()).to.have.property('message');\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Movie Test User\",\"email\":\"{{movieTestEmail}}\",\"password\":\"password123\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login user - for movie authorization tests",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Regular user token is saved\", function () {\n  const json = pm.response.json();\n  pm.expect(json).to.have.property('token');\n  pm.environment.set('movieUserToken', json.token);\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{movieTestEmail}}\",\"password\":\"password123\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/users/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "users",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create movie - missing authorization",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () { pm.response.to.have.status(401); });",
+                  "pm.test(\"Authorization error is returned\", function () {\n  pm.expect(pm.response.json().error).to.include('Authorization');\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\":\"Unauthorized Movie\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/movies",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "movies"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create movie - invalid token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () { pm.response.to.have.status(401); });",
+                  "pm.test(\"Invalid token error is returned\", function () {\n  pm.expect(pm.response.json().error.toLowerCase()).to.include('token');\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{bearer_token_18qx}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\":\"Invalid Token Movie\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/movies",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "movies"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create movie - invalid authorization format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () { pm.response.to.have.status(401); });",
+                  "pm.test(\"Authorization format error is returned\", function () {\n  pm.expect(pm.response.json().error).to.include('authorization format');\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Token invalid-token"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\":\"Malformed Authorization Movie\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/movies",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "movies"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create movie - forbidden for regular user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 403\", function () { pm.response.to.have.status(403); });",
+                  "pm.test(\"Admin permission error is returned\", function () {\n  pm.expect(pm.response.json().error).to.include('admin');\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{movieUserToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\":\"Forbidden Movie\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/movies",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "movies"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update movie - missing authorization",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () { pm.response.to.have.status(401); });",
+                  "pm.test(\"Authorization error is returned\", function () {\n  pm.expect(pm.response.json().error).to.include('Authorization');\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"plot\":\"Unauthorized update\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/movies/573a13cef29313caabd86ecc",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "movies",
+                "573a13cef29313caabd86ecc"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update movie - invalid token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () { pm.response.to.have.status(401); });",
+                  "pm.test(\"Invalid token error is returned\", function () {\n  pm.expect(pm.response.json().error.toLowerCase()).to.include('token');\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{bearer_token_18qx}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"plot\":\"Invalid token update\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/movies/573a13cef29313caabd86ecc",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "movies",
+                "573a13cef29313caabd86ecc"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update movie - invalid ID format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Error identifies the invalid movie ID\", function () {\n  pm.expect(pm.response.json().error.toLowerCase()).to.include('invalid movie id');\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"plot\":\"Invalid ID update\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/movies/invalidid123",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "movies",
+                "invalidid123"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update movie - no valid fields",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"No valid update fields error is returned\", function () {\n  pm.expect(pm.response.json().error).to.include('No valid fields');\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"notAMovieField\":\"ignored\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/movies/573a13cef29313caabd86ecc",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "movies",
+                "573a13cef29313caabd86ecc"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update movie - forbidden for regular user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 403\", function () { pm.response.to.have.status(403); });",
+                  "pm.test(\"Admin permission error is returned\", function () {\n  pm.expect(pm.response.json().error).to.include('admin');\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{movieUserToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"plot\":\"Forbidden update\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/movies/573a13cef29313caabd86ecc",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "movies",
+                "573a13cef29313caabd86ecc"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete movie - missing authorization",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () { pm.response.to.have.status(401); });",
+                  "pm.test(\"Authorization error is returned\", function () {\n  pm.expect(pm.response.json().error).to.include('Authorization');\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/movies/573a13cef29313caabd86ecc",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "movies",
+                "573a13cef29313caabd86ecc"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete movie - invalid token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () { pm.response.to.have.status(401); });",
+                  "pm.test(\"Invalid token error is returned\", function () {\n  pm.expect(pm.response.json().error.toLowerCase()).to.include('token');\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{bearer_token_18qx}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/movies/573a13cef29313caabd86ecc",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "movies",
+                "573a13cef29313caabd86ecc"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete movie - forbidden for regular user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 403\", function () { pm.response.to.have.status(403); });",
+                  "pm.test(\"Admin permission error is returned\", function () {\n  pm.expect(pm.response.json().error).to.include('admin');\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{movieUserToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/movies/573a13cef29313caabd86ecc",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "movies",
+                "573a13cef29313caabd86ecc"
               ]
             }
           },
@@ -4239,7 +4968,7 @@
   "variable": [
     {
       "key": "bearer_token_18qx",
-      "value": ""
+      "secret": true
     },
     {
       "key": "uniqueEmail2",

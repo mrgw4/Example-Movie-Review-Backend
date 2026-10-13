@@ -275,6 +275,33 @@ describe('userServices', () => {
     expect(result).toEqual({ jwt: 'token' });
   });
 
+  it('rejects a session token after logout deletes it', async () => {
+    const token = jwt.sign({ id: 'user-1' }, 'dev-secret', { expiresIn: '1h' });
+    let activeSession: { jwt: string; createdAt: Date; _id: string } | null = {
+      jwt: token,
+      createdAt: new Date(),
+      _id: 'session-1',
+    };
+
+    mockedSession.findOne.mockImplementation(async ({ jwt: requestedToken }) =>
+      activeSession?.jwt === requestedToken ? activeSession : null
+    );
+    mockedSession.findOneAndDelete.mockImplementation(async ({ jwt: requestedToken }) => {
+      if (activeSession?.jwt !== requestedToken) {
+        return null;
+      }
+
+      const deletedSession = activeSession;
+      activeSession = null;
+      return deletedSession;
+    });
+
+    await deleteSessionToken(token);
+
+    await expect(verifySessionToken(token)).rejects.toThrow('Invalid token');
+    expect(mockedSession.findOne).toHaveBeenCalledWith({ jwt: token });
+  });
+
   it('throws an error when deleteSessionToken cannot find the session', async () => {
     mockedSession.findOneAndDelete.mockResolvedValue(null);
 
