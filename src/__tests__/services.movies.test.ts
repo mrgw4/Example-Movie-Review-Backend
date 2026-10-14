@@ -3,6 +3,7 @@ import {
     getMoviesWithPagination,
     getTotalMovieCount,
     getMovie,
+    getGenres,
     createMovie,
     deleteMovie,
     updateMovie,
@@ -15,6 +16,7 @@ jest.mock('../models/Movie', () => ({
     __esModule: true,
     default: {
         find: jest.fn(),
+        distinct: jest.fn(),
         countDocuments: jest.fn(),
         findById: jest.fn(),
         create: jest.fn(),
@@ -25,6 +27,7 @@ jest.mock('../models/Movie', () => ({
 
 const mockedMovie = Movie as unknown as {
     find: jest.Mock;
+    distinct: jest.Mock;
     countDocuments: jest.Mock;
     findById: jest.Mock;
     create: jest.Mock;
@@ -76,6 +79,15 @@ describe('movieServices', () => {
         expect(mockedMovie.find).toHaveBeenCalled();
         expect(query.sort).toHaveBeenCalledWith({ title: 1 });
         expect(result).toEqual(movies);
+    });
+
+    it('returns distinct genres sorted alphabetically', async () => {
+        mockedMovie.distinct.mockResolvedValue(['Western', 'Drama', 'Comedy']);
+
+        const result = await getGenres();
+
+        expect(mockedMovie.distinct).toHaveBeenCalledWith('genres');
+        expect(result).toEqual(['Comedy', 'Drama', 'Western']);
     });
 
     it('returns paginated movies with essential fields using the query filter and sort', async () => {
