@@ -9,6 +9,23 @@ import { z } from 'zod';
 const router = Router();
 
 /**
+ * GET /api/movies/genres
+ * Returns the distinct genres represented in the database.
+ */
+router.get('/genres', async (_req: Request, res: Response) => {
+  try {
+    const genres = await movieService.getGenres();
+    return res.status(200).json({ genres });
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('connect')) {
+      return res.status(503).json({ error: 'Database unavailable' });
+    }
+
+    return res.status(500).json({ error: 'Failed to fetch genres' });
+  }
+});
+
+/**
  * GET /api/movies?page=1&limit=20
  * Returns paginated movies from the database.
  */

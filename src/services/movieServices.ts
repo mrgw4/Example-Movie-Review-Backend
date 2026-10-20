@@ -11,6 +11,15 @@ export async function getAllMovies() {
 }
 
 /**
+ * Retrieves the distinct genres represented in the movie collection.
+ * @returns Promise resolving to the genres sorted alphabetically.
+ */
+export async function getGenres(): Promise<string[]> {
+  const genres = await Movie.distinct('genres');
+  return genres.sort((a, b) => a.localeCompare(b));
+}
+
+/**
  * Retrieves paginated movies from the database with essential fields.
  * @param skip Number of documents to skip.
  * @param limit Number of documents to return.

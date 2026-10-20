@@ -22,6 +22,34 @@ describe('movies route', () => {
     jest.clearAllMocks();
   });
 
+  it('returns the distinct genres', async () => {
+    mockedServices.getGenres.mockResolvedValue(['Comedy', 'Drama']);
+
+    const response = await request(app).get('/api/movies/genres');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ genres: ['Comedy', 'Drama'] });
+    expect(mockedServices.getGenres).toHaveBeenCalled();
+  });
+
+  it('returns 503 when fetching genres fails due to a database connection error', async () => {
+    mockedServices.getGenres.mockRejectedValue(new Error('connect failed'));
+
+    const response = await request(app).get('/api/movies/genres');
+
+    expect(response.status).toBe(503);
+    expect(response.body).toEqual({ error: 'Database unavailable' });
+  });
+
+  it('returns 500 when fetching genres fails unexpectedly', async () => {
+    mockedServices.getGenres.mockRejectedValue(new Error('unexpected failure'));
+
+    const response = await request(app).get('/api/movies/genres');
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({ error: 'Failed to fetch genres' });
+  });
+
   it('returns 200 and movies on successful GET', async () => {
 
     mockedServices.getMoviesWithPagination.mockResolvedValue([movieTestData] as any);
