@@ -127,7 +127,7 @@ describe('movieServices', () => {
 
         expect(mockedMovie.find).toHaveBeenCalledWith({ title: { $regex: 'movie', $options: 'i' } });
         expect(query.select).toHaveBeenCalledWith(
-            'title year type poster imdb.rating num_mflix_comments'
+            'title year type poster imdb.rating num_mflix_comments genres directors cast runtime plot fullplot'
         );
         expect(query.skip).toHaveBeenCalledWith(10);
         expect(query.limit).toHaveBeenCalledWith(5);
