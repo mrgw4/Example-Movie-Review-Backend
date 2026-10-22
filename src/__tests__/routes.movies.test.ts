@@ -61,6 +61,23 @@ describe('movies route', () => {
     expect(response.body).toEqual({ "data": [movieTestData], "pagination": { "page": 1, "limit": 10, "total": 5, "pages": 1, "hasNextPage": false, "hasPrevPage": false } });
   });
 
+  it('passes search and genre filters through to the paginated movie query', async () => {
+    mockedServices.getMoviesWithPagination.mockResolvedValue([movieTestData] as any);
+    mockedServices.getTotalMovieCount.mockResolvedValue(1);
+
+    const response = await request(app).get('/api/movies?page=2&limit=5&genres=Documentary&search=director');
+
+    expect(response.status).toBe(200);
+    expect(mockedServices.getMoviesWithPagination).toHaveBeenCalledWith(
+      5,
+      5,
+      expect.objectContaining({ page: 2, limit: 5, genres: 'Documentary', search: 'director' })
+    );
+    expect(mockedServices.getTotalMovieCount).toHaveBeenCalledWith(
+      expect.objectContaining({ genres: 'Documentary', search: 'director' })
+    );
+  });
+
   it('returns 400 when min value is greater than max', async () => {
 
     mockedServices.getMoviesWithPagination.mockResolvedValue([movieTestData] as any);

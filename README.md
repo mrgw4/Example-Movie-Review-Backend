@@ -148,7 +148,7 @@ User passwords are hashed with bcrypt. Session verification checks both the JWT 
 Movie list query parameters include:
 
 - **Pagination:** `page` (default `1`) and `limit` (default `20`, maximum `100`).
-- **Text filters:** `title`, `plot`, and `fullplot` use case-insensitive partial matching.
+- **Text filters:** `search` matches titles, directors, and genres; `title`, `plot`, and `fullplot` also support case-insensitive partial matching.
 - **Exact filters:** `rated` and `type`.
 - **Array membership filters:** `cast`, `countries`, `directors`, `genres`, `languages`, and `writers`.
 - **Numeric ranges:** Minimum and maximum values for awards wins (`awardsWinsMin`, `awardsWinsMax`), award nominations (`awardsNominationsMin`, `awardsNominationsMax`), IMDb rating (`imdbRatingMin`, `imdbRatingMax`), Metacritic (`metacriticMin`, `metacriticMax`), runtime (`runtimeMin`, `runtimeMax`), year (`yearMin`, `yearMax`), Rotten Tomatoes viewer meter (`tomatoesMeterMin`, `tomatoesMeterMax`), and viewer rating (`tomatoesRatingMin`, `tomatoesRatingMax`).

@@ -58,6 +58,18 @@ describe('buildMovieFilter', () => {
         expect(filter).toEqual({});
     });
 
+    it('searches titles, directors, and genres using escaped case-insensitive text', () => {
+        const query = movieQuerySchema.parse({ search: 'sci.*fi' });
+
+        expect(buildMovieFilter(query)).toEqual({
+            $or: [
+                { title: { $regex: 'sci\\.\\*fi', $options: 'i' } },
+                { directors: { $regex: 'sci\\.\\*fi', $options: 'i' } },
+                { genres: { $regex: 'sci\\.\\*fi', $options: 'i' } }
+            ]
+        });
+    });
+
     it.each([
         ['title', 'star'],
         ['plot', 'space'],
