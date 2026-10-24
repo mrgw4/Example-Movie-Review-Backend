@@ -16,6 +16,7 @@ jest.mock('../models/Movie', () => ({
     __esModule: true,
     default: {
         find: jest.fn(),
+        aggregate: jest.fn(),
         distinct: jest.fn(),
         countDocuments: jest.fn(),
         findById: jest.fn(),
@@ -27,6 +28,7 @@ jest.mock('../models/Movie', () => ({
 
 const mockedMovie = Movie as unknown as {
     find: jest.Mock;
+    aggregate: jest.Mock;
     distinct: jest.Mock;
     countDocuments: jest.Mock;
     findById: jest.Mock;
@@ -107,9 +109,7 @@ describe('movieServices', () => {
             },
         });
 
-        mockedBuildMovieSort.mockReturnValue({
-            'imdb.rating': -1,
-        });
+        mockedBuildMovieSort.mockReturnValue({ title: 1 });
 
         const query = {
             select: jest.fn().mockReturnThis(),
@@ -131,8 +131,41 @@ describe('movieServices', () => {
         );
         expect(query.skip).toHaveBeenCalledWith(10);
         expect(query.limit).toHaveBeenCalledWith(5);
-        expect(query.sort).toHaveBeenCalledWith({ 'imdb.rating': -1 });
+        expect(query.sort).toHaveBeenCalledWith({ title: 1 });
 
+        expect(result).toEqual(movies);
+    });
+
+    it('sorts IMDb ratings numerically before paginating mixed numeric and string values', async () => {
+        const movies = [{ _id: 'movie-1', imdb: { rating: 10 } }];
+        mockedBuildMovieFilter.mockReturnValue({ type: 'movie' });
+        mockedBuildMovieSort.mockReturnValue({ 'imdb.rating': -1 });
+        mockedMovie.aggregate.mockResolvedValue(movies);
+
+        const result = await getMoviesWithPagination(0, 30, {
+            ...mockQuery,
+            sort: 'imdbRating',
+            order: 'desc',
+        });
+
+        expect(mockedMovie.aggregate).toHaveBeenCalledWith([
+            { $match: { type: 'movie' } },
+            {
+                $set: {
+                    'imdb.rating': {
+                        $convert: {
+                            input: '$imdb.rating',
+                            to: 'double',
+                            onError: 0,
+                            onNull: 0,
+                        },
+                    },
+                },
+            },
+            { $sort: { 'imdb.rating': -1 } },
+            { $skip: 0 },
+            { $limit: 30 },
+        ]);
         expect(result).toEqual(movies);
     });
 

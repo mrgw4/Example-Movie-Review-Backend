@@ -33,6 +33,27 @@ export async function getMoviesWithPagination(
   const filter = buildMovieFilter(query);
   const sort = buildMovieSort(query);
 
+  if (query.sort === 'imdbRating') {
+    return Movie.aggregate([
+      { $match: filter },
+      {
+        $set: {
+          'imdb.rating': {
+            $convert: {
+              input: '$imdb.rating',
+              to: 'double',
+              onError: 0,
+              onNull: 0,
+            },
+          },
+        },
+      },
+      { $sort: sort },
+      { $skip: skip },
+      { $limit: limit },
+    ]);
+  }
+
   return Movie.find(filter)
     .select(
       'title year type poster imdb.rating num_mflix_comments genres directors cast runtime plot fullplot'
