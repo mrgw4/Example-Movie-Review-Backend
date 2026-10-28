@@ -104,6 +104,14 @@ describe('buildMovieFilter', () => {
         });
     });
 
+    it('requires every selected genre to match', () => {
+        const query = movieQuerySchema.parse({ genres: 'Drama, Mystery' });
+
+        expect(buildMovieFilter(query)).toEqual({
+            genres: { $all: ['Drama', 'Mystery'] }
+        });
+    });
+
     it.each([
         ['rated', 'PG-13'],
         ['type', 'movie'],

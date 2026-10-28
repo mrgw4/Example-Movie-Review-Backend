@@ -60,7 +60,12 @@ export function buildMovieFilter(query: MovieQuery): MovieFilter {
     }
 
     if (query.genres) {
-        filter.genres = query.genres;
+        const genres = query.genres.split(',').map((genre) => genre.trim()).filter(Boolean);
+        if (genres.length === 1) {
+            filter.genres = genres[0];
+        } else if (genres.length > 1) {
+            filter.genres = { $all: genres };
+        }
     }
 
     if (query.languages) {
