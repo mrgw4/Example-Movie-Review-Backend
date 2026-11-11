@@ -109,7 +109,7 @@ export async function createTestAdmin(
  *                 cannot be accessed.
  */
 export async function resetTestDatabase(): Promise<Record<string, number>> {
-  const dbSelection = process.env.DATABASE_SELECTION || '/blog_test';
+  const dbSelection = process.env.DATABASE_SELECTION || '/mflix_test';
   const targetDbName = normaliseDbName(dbSelection);
 
   if (!targetDbName) {
@@ -192,7 +192,7 @@ export async function handleResetRouteInternal(
       message: 'Test database reset successfully',
       sourceDatabase: SOURCE_DB_NAME,
       targetDatabase: normaliseDbName(
-        process.env.DATABASE_SELECTION || '/blog_test'
+        process.env.DATABASE_SELECTION || '/mflix_test'
       ),
       copiedCollections,
     });

@@ -3,21 +3,19 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import userRouter from './routes/users';
 import movieRouter from './routes/movies';
-import commentRouter from './routes/comments'
+import commentRouter from './routes/comments';
 import testResetHandler from './testhelper/testResetHandler';
 
-
-dotenv.config();
+dotenv.config({ quiet: true });
 
 export const app: Express = express();
 const port = process.env.PORT || 5000;
-const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/blog';
-const database = process.env.DATABASE_SELECTION || '/blog_test';
+const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const database = process.env.DATABASE_SELECTION || '/mflix_test';
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 
 // MongoDB Connection
 /**
@@ -26,26 +24,28 @@ app.use(express.urlencoded({ extended: true }));
  * @throws {Error} when MongoDB connection fails.
  */
 export async function connectDB(): Promise<void> {
-    try {
-        await mongoose.connect(mongoUri + database);
-        console.log(mongoUri);
-        console.log(database);
-        console.log('MongoDB connected successfully');
-        console.log(`Connected database: ${mongoose.connection.db?.databaseName}`);
-    } catch (error) {
-        console.error('MongoDB connection failed:', error);
-        throw error;
-    }
+  try {
+    const connectionUri = `${mongoUri.replace(/\/+$/, '')}/${database.replace(
+      /^\/+/,
+      ''
+    )}`;
+    await mongoose.connect(connectionUri);
+    console.log('MongoDB connected successfully');
+    console.log(`Connected database: ${mongoose.connection.db?.databaseName}`);
+  } catch (error) {
+    console.error('MongoDB connection failed:', error);
+    throw error;
+  }
 }
 
 // Routes
 app.get('/health', (_req: Request, res: Response) => {
-    res.json({ status: 'OK', timestamp: new Date() });
+  res.json({ status: 'OK', timestamp: new Date() });
 });
 
 app.use('/api/users', userRouter);
 app.use('/api/movies', movieRouter);
-app.use('/api/comments', commentRouter)
+app.use('/api/comments', commentRouter);
 app.use('/api/testreset', testResetHandler);
 
 /**
@@ -56,13 +56,13 @@ app.use('/api/testreset', testResetHandler);
  * @param _next The next middleware function in the chain.
  */
 export function errorHandler(
-    _err: any,
-    _req: Request,
-    res: Response,
-    _next: NextFunction
+  _err: any,
+  _req: Request,
+  res: Response,
+  _next: NextFunction
 ): void {
-    console.error(_err.stack);
-    res.status(500).json({ error: 'Internal Server Error' });
+  console.error(_err.stack);
+  res.status(500).json({ error: 'Internal Server Error' });
 }
 
 app.use(errorHandler);
@@ -74,14 +74,14 @@ app.use(errorHandler);
  * @throws {Error} when the database connection or listening fails.
  */
 export let startServerInternal = async (): Promise<void> => {
-    await connectDB();
-    app.listen(port, () => {
-        console.log(`Server is running on http://localhost:${port}`);
-    });
+  await connectDB();
+  app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
+  });
 };
 
 export async function startServer(): Promise<void> {
-    return startServerInternal();
+  return startServerInternal();
 }
 
 /**
@@ -89,16 +89,16 @@ export async function startServer(): Promise<void> {
  * @returns Promise that resolves when the server starts or the process exits.
  */
 export let runServerInternal = async (): Promise<void> => {
-    try {
-        await startServerInternal();
-    } catch (error) {
-        console.error(error);
-        process.exit(1);
-    }
+  try {
+    await startServerInternal();
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
 };
 
 export async function runServer(): Promise<void> {
-    return runServerInternal();
+  return runServerInternal();
 }
 
 /**
@@ -108,10 +108,10 @@ export async function runServer(): Promise<void> {
  * @returns True when the current module is the process entry point.
  */
 export function isCurrentModuleMain(
-    mainFilename: string | undefined = require.main?.filename,
-    currentFilename: string = __filename
+  mainFilename: string | undefined = require.main?.filename,
+  currentFilename: string = __filename
 ): boolean {
-    return mainFilename === currentFilename;
+  return mainFilename === currentFilename;
 }
 
 /**
@@ -120,12 +120,12 @@ export function isCurrentModuleMain(
  * @param currentFilename The filename of this module.
  */
 export function executeRunServerIfMain(
-    mainFilename: string | undefined = require.main?.filename,
-    currentFilename: string = __filename
+  mainFilename: string | undefined = require.main?.filename,
+  currentFilename: string = __filename
 ): void {
-    if (isCurrentModuleMain(mainFilename, currentFilename)) {
-        void runServer();
-    }
+  if (isCurrentModuleMain(mainFilename, currentFilename)) {
+    void runServer();
+  }
 }
 
 executeRunServerIfMain();

@@ -112,6 +112,12 @@ describe('buildMovieFilter', () => {
         });
     });
 
+    it('ignores genre filters containing only empty values', () => {
+        const query = movieQuerySchema.parse({ genres: ' , , ' });
+
+        expect(buildMovieFilter(query)).toEqual({});
+    });
+
     it.each([
         ['rated', 'PG-13'],
         ['type', 'movie'],
