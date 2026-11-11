@@ -442,7 +442,7 @@ describe('Comment routes', () => {
             expect(response.status).toBe(201);
             expect(response.body).toEqual({
                 message: 'Comment created successfully',
-                comment: commentTestData,
+                comment: publicCommentTestData,
             });
             expect(mockedUserServices.verifySessionToken).toHaveBeenCalledWith('valid-token');
             expect(mockedUserServices.getUser).toHaveBeenCalledWith(authenticatedUser._id);
@@ -691,7 +691,10 @@ describe('Comment routes', () => {
                 });
 
             expect(response.status).toBe(200);
-            expect(response.body).toEqual(updatedComment);
+            expect(response.body).toEqual({
+                ...publicCommentTestData,
+                text: 'Updated comment!',
+            });
             expect(mockedUserServices.canEditComment).toHaveBeenCalledWith(
                 'owner-token',
                 commentTestData.email
@@ -721,7 +724,10 @@ describe('Comment routes', () => {
                 });
 
             expect(response.status).toBe(200);
-            expect(response.body).toEqual(updatedComment);
+            expect(response.body).toEqual({
+                ...publicCommentTestData,
+                text: 'Updated by admin!',
+            });
 
             expect(mockedUserServices.canEditComment).toHaveBeenCalledWith(
                 'admin-token',
@@ -911,7 +917,7 @@ describe('Comment routes', () => {
             expect(response.status).toBe(200);
             expect(response.body).toEqual({
                 message: 'Comment deleted successfully',
-                comment: commentTestData,
+                comment: publicCommentTestData,
             });
             expect(mockedUserServices.canEditComment).toHaveBeenCalledWith(
                 'owner-token',
@@ -930,6 +936,10 @@ describe('Comment routes', () => {
                 .set('Authorization', 'Bearer admin-token');
 
             expect(response.status).toBe(200);
+            expect(response.body).toEqual({
+                message: 'Comment deleted successfully',
+                comment: publicCommentTestData,
+            });
             expect(mockedUserServices.canEditComment).toHaveBeenCalledWith(
                 'admin-token',
                 commentTestData.email
