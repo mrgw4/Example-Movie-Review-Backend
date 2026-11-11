@@ -58,6 +58,18 @@ describe('buildMovieFilter', () => {
         expect(filter).toEqual({});
     });
 
+    it('searches titles, directors, and genres using escaped case-insensitive text', () => {
+        const query = movieQuerySchema.parse({ search: 'sci.*fi' });
+
+        expect(buildMovieFilter(query)).toEqual({
+            $or: [
+                { title: { $regex: 'sci\\.\\*fi', $options: 'i' } },
+                { directors: { $regex: 'sci\\.\\*fi', $options: 'i' } },
+                { genres: { $regex: 'sci\\.\\*fi', $options: 'i' } }
+            ]
+        });
+    });
+
     it.each([
         ['title', 'star'],
         ['plot', 'space'],
@@ -90,6 +102,20 @@ describe('buildMovieFilter', () => {
         expect(buildMovieFilter(query)).toEqual({
             [field]: value
         });
+    });
+
+    it('requires every selected genre to match', () => {
+        const query = movieQuerySchema.parse({ genres: 'Drama, Mystery' });
+
+        expect(buildMovieFilter(query)).toEqual({
+            genres: { $all: ['Drama', 'Mystery'] }
+        });
+    });
+
+    it('ignores genre filters containing only empty values', () => {
+        const query = movieQuerySchema.parse({ genres: ' , , ' });
+
+        expect(buildMovieFilter(query)).toEqual({});
     });
 
     it.each([

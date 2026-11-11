@@ -20,11 +20,11 @@ describe('testResetHandler', () => {
   });
 
   it('normalises database names with leading slash', () => {
-    expect(normaliseDbName('/blog_test')).toBe('blog_test');
+    expect(normaliseDbName('/mflix_test')).toBe('mflix_test');
   });
 
   it('normalises database names without leading slash', () => {
-    expect(normaliseDbName('blog_test')).toBe('blog_test');
+    expect(normaliseDbName('mflix_test')).toBe('mflix_test');
   });
 
   it('copies documents from source to target collection', async () => {
@@ -109,7 +109,7 @@ describe('testResetHandler', () => {
   });
 
   it('throws when MongoDB is not connected', async () => {
-    process.env.DATABASE_SELECTION = '/blog_test';
+    process.env.DATABASE_SELECTION = '/mflix_test';
     (mongoose.connection as any).db = undefined;
 
     await expect(resetTestDatabase()).rejects.toThrow(
@@ -118,7 +118,7 @@ describe('testResetHandler', () => {
   });
 
   it('throws when the source database cannot be accessed', async () => {
-    process.env.DATABASE_SELECTION = '/blog_test';
+    process.env.DATABASE_SELECTION = '/mflix_test';
     (mongoose.connection as any).db = {};
 
     const useDbMock = mongoose.connection.useDb as jest.Mock;
@@ -133,7 +133,7 @@ describe('testResetHandler', () => {
   });
 
   it('throws when the target database cannot be accessed', async () => {
-    process.env.DATABASE_SELECTION = '/blog_test';
+    process.env.DATABASE_SELECTION = '/mflix_test';
     (mongoose.connection as any).db = {};
 
     const useDbMock = mongoose.connection.useDb as jest.Mock;
@@ -143,12 +143,12 @@ describe('testResetHandler', () => {
       .mockReturnValueOnce({ db: undefined });
 
     await expect(resetTestDatabase()).rejects.toThrow(
-      'Could not access target database "blog_test"'
+      'Could not access target database "mflix_test"'
     );
   });
 
   it('resets the test database successfully when source data exists', async () => {
-    process.env.DATABASE_SELECTION = '/blog_test';
+    process.env.DATABASE_SELECTION = '/mflix_test';
 
     const sourceCollection = {
       find: jest.fn().mockReturnValue({
@@ -247,7 +247,7 @@ describe('testResetHandler', () => {
   });
 
   it('returns 200 when the test database reset succeeds', async () => {
-    process.env.DATABASE_SELECTION = '/blog_test';
+    process.env.DATABASE_SELECTION = '/mflix_test';
 
     const resetFn = jest.fn().mockResolvedValue({
       movies: 10,
@@ -270,7 +270,7 @@ describe('testResetHandler', () => {
     expect(json).toHaveBeenCalledWith({
       message: 'Test database reset successfully',
       sourceDatabase: 'sample_mflix',
-      targetDatabase: 'blog_test',
+      targetDatabase: 'mflix_test',
       copiedCollections: {
         movies: 10,
         comments: 20,
@@ -352,12 +352,12 @@ describe('testResetHandler', () => {
 
     expect(mongoose.connection.useDb).toHaveBeenNthCalledWith(
       2,
-      'blog_test',
+      'mflix_test',
       { useCache: true }
     );
   });
 
-  it('uses blog_test as the route response target when DATABASE_SELECTION is not set', async () => {
+  it('uses mflix_test as the route response target when DATABASE_SELECTION is not set', async () => {
     delete process.env.DATABASE_SELECTION;
 
     const resetFn = jest.fn().mockResolvedValue({
@@ -377,7 +377,7 @@ describe('testResetHandler', () => {
     expect(res.json).toHaveBeenCalledWith({
       message: 'Test database reset successfully',
       sourceDatabase: 'sample_mflix',
-      targetDatabase: 'blog_test',
+      targetDatabase: 'mflix_test',
       copiedCollections: {
         movies: 10,
         comments: 20,

@@ -179,7 +179,7 @@ router.post('/', async (req: Request, res: Response) => {
 
     return res.status(201).json({
       message: 'Comment created successfully',
-      comment: createdComment
+      comment: toPublicComment(createdComment)
     });
   } catch (error) {
     if (error instanceof Error && (error.message === 'Token expired' || error.message === 'jwt expired')) {
@@ -250,7 +250,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 
     const updatedComment = await comment.updateComment(id, result.data);
 
-    return res.status(200).json(updatedComment);
+    return res.status(200).json(toPublicComment(updatedComment));
   } catch (error) {
     if (error instanceof Error && (error.message === 'Token expired' || error.message === 'jwt expired')) {
       return res.status(401).json({ error: 'Token expired' });
@@ -313,7 +313,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
 
     return res.status(200).json({
       message: 'Comment deleted successfully',
-      comment: deletedComment
+      comment: toPublicComment(deletedComment)
     });
   } catch (error) {
     if (error instanceof Error && (error.message === 'Token expired' || error.message === 'jwt expired')) {

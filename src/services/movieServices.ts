@@ -20,7 +20,7 @@ export async function getGenres(): Promise<string[]> {
 }
 
 /**
- * Retrieves paginated movies from the database with essential fields.
+ * Retrieves paginated movies from the database with fields used by movie cards and details.
  * @param skip Number of documents to skip.
  * @param limit Number of documents to return.
  * @returns Promise resolving to the list of paginated movies.
@@ -33,8 +33,31 @@ export async function getMoviesWithPagination(
   const filter = buildMovieFilter(query);
   const sort = buildMovieSort(query);
 
+  if (query.sort === 'imdbRating') {
+    return Movie.aggregate([
+      { $match: filter },
+      {
+        $set: {
+          'imdb.rating': {
+            $convert: {
+              input: '$imdb.rating',
+              to: 'double',
+              onError: 0,
+              onNull: 0,
+            },
+          },
+        },
+      },
+      { $sort: sort },
+      { $skip: skip },
+      { $limit: limit },
+    ]);
+  }
+
   return Movie.find(filter)
-    .select('title year type poster imdb.rating num_mflix_comments')
+    .select(
+      'title year type poster imdb.rating num_mflix_comments genres directors cast runtime plot fullplot'
+    )
     .skip(skip)
     .limit(limit)
     .sort(sort);

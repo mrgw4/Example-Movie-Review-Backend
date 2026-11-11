@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 describe('reset route handler', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env.DATABASE_SELECTION = '/blog_test';
+    process.env.DATABASE_SELECTION = '/mflix_test';
   });
 
   function createMockResponse() {
@@ -37,7 +37,7 @@ describe('reset route handler', () => {
     expect(res.json).toHaveBeenCalledWith({
       message: 'Test database reset successfully',
       sourceDatabase: 'sample_mflix',
-      targetDatabase: 'blog_test',
+      targetDatabase: 'mflix_test',
       copiedCollections: {
         movies: 10,
         comments: 20,

@@ -6,6 +6,7 @@ export const movieQuerySchema = z.object({
     limit: z.coerce.number().int().min(1).max(100).default(20),
 
     // Text search
+    search: z.string().optional(),
     title: z.string().optional(),
     plot: z.string().optional(),
     fullplot: z.string().optional(),

@@ -87,7 +87,7 @@ describe('index module', () => {
 
       await freshIndexModule.connectDB();
 
-      expect(connectMock).toHaveBeenCalledWith('mongodb://localhost:27017/blog/blog_test');
+      expect(connectMock).toHaveBeenCalledWith('mongodb://localhost:27017/mflix_test');
     });
   });
 
@@ -104,7 +104,7 @@ describe('index module', () => {
 
       await freshIndexModule.connectDB();
 
-      expect(connectMock).toHaveBeenCalledWith('mongodb://example:27017//custom_db');
+      expect(connectMock).toHaveBeenCalledWith('mongodb://example:27017/custom_db');
     });
   });
 

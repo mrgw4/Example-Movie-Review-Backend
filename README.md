@@ -47,7 +47,7 @@ Create a `.env` file in the project root:
 
 ```env
 MONGODB_URI=mongodb+srv://<username>:<password>@name-of-your-cluster.mongodb.net
-DATABASE_SELECTION=/blog_test
+DATABASE_SELECTION=/mflix_test
 JWT_SECRET=your_jwt_secret_key_here_change_in_production
 PORT=5000
 NODE_ENV=development
@@ -58,10 +58,10 @@ Replace the URI placeholders with your MongoDB Atlas credentials and cluster hos
 The application appends `DATABASE_SELECTION` to `MONGODB_URI`, so keep the database name out of the URI. With the example settings, the resulting connection string is:
 
 ```text
-mongodb+srv://<username>:<password>@name-of-your-cluster.mongodb.net/blog_test
+mongodb+srv://<username>:<password>@name-of-your-cluster.mongodb.net/mflix_test
 ```
 
-`DATABASE_SELECTION` defaults to `/blog_test`, and `PORT` defaults to `5000`. The MongoDB account must have the permissions required by the operations you intend to run.
+`DATABASE_SELECTION` defaults to `/mflix_test`, and `PORT` defaults to `5000`. The MongoDB account must have the permissions required by the operations you intend to run.
 
 ### 3. Start the development server
 
@@ -87,16 +87,16 @@ The server connects to MongoDB before it starts listening. With the default port
 
 The backend uses Jest and Supertest to test route handlers, services, database interactions, authentication, authorization, validation, and error handling.
 
-The latest reported Jest coverage run passed all **363 tests across 11 test suites**.
+The latest Jest coverage run passed all **368 tests across 11 test suites**.
 
 | Coverage metric | Result |
 | --- | ---: |
 | Statements | 100% |
-| Branches | 98.34% |
-| Functions | 98.78% |
+| Branches | 98.36% |
+| Functions | 98.79% |
 | Lines | 100% |
 | Test suites passed | 11 / 11 |
-| Tests passed | 363 / 363 |
+| Tests passed | 368 / 368 |
 
 All statements and lines are covered. The remaining uncovered branches are concentrated in route handlers, with some function coverage remaining in the server entry-point wrapper.
 
@@ -108,7 +108,7 @@ npm test
 
 ## API Reference
 
-All request and response bodies use JSON. Protected routes use an authorization header in the form:
+All request and response bodies use JSON. Protected routes use a bearer token in the `Authorization` header:
 
 ```http
 Authorization: Bearer <token>
@@ -127,7 +127,7 @@ Authorization: Bearer <token>
 | `GET /api/users?page=1&limit=20` | Returns paginated users without email addresses or passwords. Limit is capped at 100. |
 | `POST /api/users` | Creates an account. Requires `name` (4–25 characters), `email`, and `password` (6–100 characters). |
 | `POST /api/users/login` | Accepts `email` and `password`; returns a one-hour JWT and basic user details. |
-| `POST /api/users/logout` | Deletes the session associated with the supplied Bearer token. |
+| `POST /api/users/logout` | Deletes the session associated with the supplied bearer token. |
 | `GET /api/users/:id` | Returns a user without their password. Email is included when a valid session token is supplied; otherwise, it is omitted. |
 | `PUT /api/users/:id` | Updates the authenticated user's own `name` and/or `email`. Changes are synchronized to their comments. |
 | `DELETE /api/users/:id` | Deletes the authenticated user's own account and session. |
@@ -140,15 +140,16 @@ User passwords are hashed with bcrypt. Session verification checks both the JWT 
 | Method and path | Behaviour and access |
 | --- | --- |
 | `GET /api/movies` | Returns paginated movies and pagination metadata. Supports the filters below. |
+| `GET /api/movies/genres` | Returns the distinct genres in alphabetical order. |
 | `GET /api/movies/:id` | Returns one movie by MongoDB ObjectId. |
-| `POST /api/movies` | Creates a movie; requires an admin Bearer token and a valid movie document. |
-| `PUT /api/movies/:id` | Updates allowed movie fields; requires an admin Bearer token. |
-| `DELETE /api/movies/:id` | Deletes a movie; requires an admin Bearer token. |
+| `POST /api/movies` | Creates a movie; requires an admin bearer token and a valid movie document. |
+| `PUT /api/movies/:id` | Updates allowed movie fields; requires an admin bearer token. |
+| `DELETE /api/movies/:id` | Deletes a movie; requires an admin bearer token. |
 
 Movie list query parameters include:
 
 - **Pagination:** `page` (default `1`) and `limit` (default `20`, maximum `100`).
-- **Text filters:** `title`, `plot`, and `fullplot` use case-insensitive partial matching.
+- **Text filters:** `search` matches titles, directors, and genres; `title`, `plot`, and `fullplot` also support case-insensitive partial matching.
 - **Exact filters:** `rated` and `type`.
 - **Array membership filters:** `cast`, `countries`, `directors`, `genres`, `languages`, and `writers`.
 - **Numeric ranges:** Minimum and maximum values for awards wins (`awardsWinsMin`, `awardsWinsMax`), award nominations (`awardsNominationsMin`, `awardsNominationsMax`), IMDb rating (`imdbRatingMin`, `imdbRatingMax`), Metacritic (`metacriticMin`, `metacriticMax`), runtime (`runtimeMin`, `runtimeMax`), year (`yearMin`, `yearMax`), Rotten Tomatoes viewer meter (`tomatoesMeterMin`, `tomatoesMeterMax`), and viewer rating (`tomatoesRatingMin`, `tomatoesRatingMax`).
@@ -165,6 +166,12 @@ Example request:
 curl "http://localhost:5000/api/movies?page=1&limit=10"
 ```
 
+List available genres:
+
+```bash
+curl "http://localhost:5000/api/movies/genres"
+```
+
 ### Comments
 
 The comment router is mounted at `/api/comments`.
@@ -173,7 +180,7 @@ The comment router is mounted at `/api/comments`.
 | --- | --- |
 | `GET /api/comments?userId=<id>&movieId=<id>&page=1&limit=20` | Lists comments filtered by either or both IDs. At least one filter is required. Returns pagination metadata without author email addresses. |
 | `GET /api/comments/:id` | Returns one comment by MongoDB ObjectId without the author's email address. |
-| `POST /api/comments` | Creates a comment for the authenticated user. Requires a Bearer token, `movie_id` referencing an existing movie, and `text`. Author details come from the account. |
+| `POST /api/comments` | Creates a comment for the authenticated user. Requires a `movie_id` referencing an existing movie and `text`. Author details come from the account. |
 | `PUT /api/comments/:id` | Updates a comment's `text`. Requires the comment author or an admin. |
 | `DELETE /api/comments/:id` | Deletes a comment. Requires the comment author or an admin. |
 
@@ -189,9 +196,9 @@ Requests target `http://localhost:5000`, so run the server on its default port o
 
 ## Test Database Reset
 
-`POST /api/testreset/reset` provides a development and testing utility for restoring the configured database from the MongoDB `sample_mflix` dataset.
+`POST /api/testreset/reset` provides a development and testing utility for restoring the configured database from the MongoDB `sample_mflix` dataset. The reset function assumes that the basic MongoDB sample database named `sample_mflix` already exists on the same data cluster, so it can copy the source collections into the selected test database.
 
-The route uses `MONGODB_URI` to connect to MongoDB and selects `sample_mflix` as the source database and the normalized `DATABASE_SELECTION` value as the target database. `DATABASE_SELECTION` defaults to `/blog_test`. Both databases must be on the same MongoDB deployment, and the MongoDB account must have the necessary read and write permissions.
+The route uses `MONGODB_URI` to connect to MongoDB and selects `sample_mflix` as the source database and the normalized `DATABASE_SELECTION` value as the target database. `DATABASE_SELECTION` defaults to `/mflix_test`. Both databases must be on the same MongoDB deployment, and the MongoDB account must have the necessary read and write permissions.
 
 ### Reset behaviour
 

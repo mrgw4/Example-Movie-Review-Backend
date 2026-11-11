@@ -11,6 +11,19 @@ type MovieFilter = Record<string, any>;
 export function buildMovieFilter(query: MovieQuery): MovieFilter {
     const filter: MovieFilter = {};
 
+    if (query.search) {
+        const escapedSearch = query.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const searchExpression = {
+            $regex: escapedSearch,
+            $options: 'i'
+        };
+        filter.$or = [
+            { title: searchExpression },
+            { directors: searchExpression },
+            { genres: searchExpression }
+        ];
+    }
+
     // Text searches
     if (query.title) {
         filter.title = {
@@ -47,7 +60,12 @@ export function buildMovieFilter(query: MovieQuery): MovieFilter {
     }
 
     if (query.genres) {
-        filter.genres = query.genres;
+        const genres = query.genres.split(',').map((genre) => genre.trim()).filter(Boolean);
+        if (genres.length === 1) {
+            filter.genres = genres[0];
+        } else if (genres.length > 1) {
+            filter.genres = { $all: genres };
+        }
     }
 
     if (query.languages) {
