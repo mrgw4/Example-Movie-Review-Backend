@@ -1,4 +1,5 @@
 import Comment from '../models/Comment';
+import Movie from '../models/Movie';
 import * as commentServices from '../services/commentServices';
 import * as movieServices from '../services/movieServices';
 import * as userServices from '../services/userServices';
@@ -15,6 +16,13 @@ jest.mock('../models/Comment', () => ({
     }
 }));
 
+jest.mock('../models/Movie', () => ({
+    __esModule: true,
+    default: {
+        updateOne: jest.fn(),
+    }
+}));
+
 const mockedComment = Comment as unknown as {
     find: jest.Mock;
     countDocuments: jest.Mock;
@@ -22,6 +30,9 @@ const mockedComment = Comment as unknown as {
     create: jest.Mock;
     findByIdAndDelete: jest.Mock;
     findByIdAndUpdate: jest.Mock;
+}
+const mockedMovie = Movie as unknown as {
+    updateOne: jest.Mock;
 }
 
 jest.mock('../services/userServices', () => ({
@@ -262,6 +273,7 @@ describe('commentServices', () => {
         it('creates and returns a comment', async () => {
             mockedMovieServices.getMovie.mockResolvedValue(movieTestData);
             mockedComment.create.mockResolvedValue(commentTestData);
+            mockedMovie.updateOne.mockResolvedValue({ matchedCount: 1 });
 
             const result = await commentServices.createComment(newCommentData);
 
@@ -269,6 +281,10 @@ describe('commentServices', () => {
                 newCommentData.movie_id
             );
             expect(mockedComment.create).toHaveBeenCalledWith(newCommentData);
+            expect(mockedMovie.updateOne).toHaveBeenCalledWith(
+                { _id: newCommentData.movie_id },
+                { $inc: { num_mflix_comments: 1 } }
+            );
             expect(result).toEqual(commentTestData);
         });
 
@@ -280,6 +296,19 @@ describe('commentServices', () => {
             ).rejects.toThrow('Movie not found');
 
             expect(mockedComment.create).not.toHaveBeenCalled();
+        });
+
+        it('removes the created comment and throws if the movie disappears before its count update', async () => {
+            mockedMovieServices.getMovie.mockResolvedValue(movieTestData);
+            mockedComment.create.mockResolvedValue(commentTestData);
+            mockedMovie.updateOne.mockResolvedValue({ matchedCount: 0 });
+            mockedComment.findByIdAndDelete.mockResolvedValue(commentTestData);
+
+            await expect(
+                commentServices.createComment(newCommentData)
+            ).rejects.toThrow('Movie not found');
+
+            expect(mockedComment.findByIdAndDelete).toHaveBeenCalledWith(commentTestData._id);
         });
 
         it('propagates database errors', async () => {
@@ -336,11 +365,16 @@ describe('commentServices', () => {
     describe('deleteComment', () => {
         it('deletes and returns the comment', async () => {
             mockedComment.findByIdAndDelete.mockResolvedValue(commentTestData);
+            mockedMovie.updateOne.mockResolvedValue({ matchedCount: 1 });
 
             const result = await commentServices.deleteComment(commentTestData._id);
 
             expect(mockedComment.findByIdAndDelete).toHaveBeenCalledWith(
                 commentTestData._id
+            );
+            expect(mockedMovie.updateOne).toHaveBeenCalledWith(
+                { _id: commentTestData.movie_id },
+                { $inc: { num_mflix_comments: -1 } }
             );
             expect(result).toEqual(commentTestData);
         });
@@ -351,6 +385,7 @@ describe('commentServices', () => {
             await expect(
                 commentServices.deleteComment(commentTestData._id)
             ).rejects.toThrow('Comment not found');
+            expect(mockedMovie.updateOne).not.toHaveBeenCalled();
         });
 
         it('propagates database errors', async () => {

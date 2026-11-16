@@ -1,4 +1,5 @@
 import Comment from '../models/Comment';
+import Movie from '../models/Movie';
 import { getUser } from './userServices';
 import { getMovie } from './movieServices';
 
@@ -95,7 +96,18 @@ export async function createComment(commentData: {
 }) {
     await getMovie(commentData.movie_id);
 
-    return Comment.create(commentData);
+    const createdComment = await Comment.create(commentData);
+    const movieUpdate = await Movie.updateOne(
+        { _id: commentData.movie_id },
+        { $inc: { num_mflix_comments: 1 } }
+    );
+
+    if (movieUpdate.matchedCount === 0) {
+        await Comment.findByIdAndDelete(createdComment._id);
+        throw new Error('Movie not found');
+    }
+
+    return createdComment;
 }
 
 /**
@@ -134,6 +146,11 @@ export async function deleteComment(commentId: string) {
     if (!deletedComment) {
         throw new Error('Comment not found');
     }
+
+    await Movie.updateOne(
+        { _id: deletedComment.movie_id },
+        { $inc: { num_mflix_comments: -1 } }
+    );
 
     return deletedComment;
 }

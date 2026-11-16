@@ -9,6 +9,7 @@ import {
     updateMovie,
 } from '../services/movieServices';
 import Movie from '../models/Movie';
+import Comment from '../models/Comment';
 import { MovieQuery } from '../schemas/movieQuerySchema';
 import { buildMovieFilter, buildMovieSort } from '../services/queries/movieQuery';
 
@@ -26,6 +27,13 @@ jest.mock('../models/Movie', () => ({
     },
 }));
 
+jest.mock('../models/Comment', () => ({
+    __esModule: true,
+    default: {
+        deleteMany: jest.fn(),
+    },
+}));
+
 const mockedMovie = Movie as unknown as {
     find: jest.Mock;
     aggregate: jest.Mock;
@@ -35,6 +43,9 @@ const mockedMovie = Movie as unknown as {
     create: jest.Mock;
     findByIdAndDelete: jest.Mock;
     findByIdAndUpdate: jest.Mock;
+};
+const mockedComment = Comment as unknown as {
+    deleteMany: jest.Mock;
 };
 
 jest.mock('../services/queries/movieQuery', () => ({
@@ -231,10 +242,12 @@ describe('movieServices', () => {
         };
 
         mockedMovie.findByIdAndDelete.mockResolvedValue(movie);
+        mockedComment.deleteMany.mockResolvedValue({ deletedCount: 2 });
 
         const result = await deleteMovie('movie-1');
 
         expect(mockedMovie.findByIdAndDelete).toHaveBeenCalledWith('movie-1');
+        expect(mockedComment.deleteMany).toHaveBeenCalledWith({ movie_id: movie._id });
         expect(result).toEqual(movie);
     });
 
@@ -244,6 +257,7 @@ describe('movieServices', () => {
         await expect(deleteMovie('nonexistent-id')).rejects.toThrow('Movie not found');
 
         expect(mockedMovie.findByIdAndDelete).toHaveBeenCalledWith('nonexistent-id');
+        expect(mockedComment.deleteMany).not.toHaveBeenCalled();
     });
 
     // updateMovie tests

@@ -1,4 +1,5 @@
 import Movie from '../models/Movie';
+import Comment from '../models/Comment';
 import { MovieQuery } from '../schemas/movieQuerySchema';
 import { buildMovieFilter, buildMovieSort } from './queries/movieQuery';
 
@@ -106,6 +107,7 @@ export async function deleteMovie(id: string) {
   if (!movie) {
     throw new Error(`Movie not found`);
   }
+  await Comment.deleteMany({ movie_id: movie._id });
   return movie;
 }
 
