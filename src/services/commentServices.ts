@@ -49,7 +49,7 @@ export async function getComments(
 ) {
     const filter = await buildCommentFilter({ userId, movieId });
 
-    return Comment.find(filter).skip(skip).limit(limit);
+    return Comment.find(filter).sort({ date: -1, _id: -1 }).skip(skip).limit(limit);
 }
 
 

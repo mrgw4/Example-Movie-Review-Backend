@@ -56,11 +56,16 @@ const mockedMovieServices = movieServices as unknown as {
     getMovie: jest.Mock;
 };
 
-const mockCommentQuery = (comments: unknown[]) => ({
-    skip: jest.fn().mockReturnValue({
+const mockCommentQuery = (comments: unknown[]) => {
+    const query = {
+        sort: jest.fn(),
+        skip: jest.fn(),
         limit: jest.fn().mockResolvedValue(comments),
-    }),
-});
+    };
+    query.sort.mockReturnValue(query);
+    query.skip.mockReturnValue(query);
+    return query;
+};
 
 const commentTestData = {
     _id: '507f1f77bcf86cd799439011',
@@ -95,13 +100,13 @@ describe('commentServices', () => {
     });
     describe('getComments', () => {
         it('returns all comments when no filters are provided', async () => {
-            mockedComment.find.mockReturnValue(
-                mockCommentQuery([commentTestData])
-            );
+            const query = mockCommentQuery([commentTestData]);
+            mockedComment.find.mockReturnValue(query);
 
             const result = await commentServices.getComments({}, 0, 1);
 
             expect(mockedComment.find).toHaveBeenCalledWith({});
+            expect(query.sort).toHaveBeenCalledWith({ date: -1, _id: -1 });
             expect(result).toEqual([commentTestData]);
         });
 
@@ -217,10 +222,12 @@ describe('commentServices', () => {
 
         it('propagates database errors', async () => {
             mockedComment.find.mockReturnValue({
-                skip: jest.fn().mockReturnValue({
-                    limit: jest.fn().mockRejectedValue(
-                        new Error('Database unavailable')
-                    ),
+                sort: jest.fn().mockReturnValue({
+                    skip: jest.fn().mockReturnValue({
+                        limit: jest.fn().mockRejectedValue(
+                            new Error('Database unavailable')
+                        ),
+                    }),
                 }),
             });
 
