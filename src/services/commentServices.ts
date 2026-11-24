@@ -13,6 +13,7 @@ import { getMovie } from './movieServices';
 async function buildCommentFilter(
     { userId, movieId, }: { userId?: string; movieId?: string; }) {
     const filter: Record<string, unknown> = {};
+    let movie: Awaited<ReturnType<typeof getMovie>> | undefined;
 
     if (userId) {
         const user = await getUser(userId);
@@ -23,33 +24,51 @@ async function buildCommentFilter(
     }
 
     if (movieId) {
-        const movie = await getMovie(movieId);
+        movie = await getMovie(movieId);
         if (!movie) {
             throw new Error('Movie not found');
         }
         filter.movie_id = movieId;
     }
 
-    return filter;
+    return { filter, movie };
 }
 
 /**
- * Retrieves comments from the database.
+ * Retrieves a page of comments and its total from the database.
  * @param userId Optional user ID to filter comments by user.
  * @param movieId Optional movie ID to filter comments by movie.
  * @param skip Number of documents to skip.
  * @param limit Number of documents to return.
- * @returns Promise resolving to the list of all comments matching the provided ids.
+ * @param reconcileMovieCount Whether to reconcile the movie count for this request.
+ * @returns The requested comments and total number of matching comments.
  * @throws {Error} when the user or movie does not exist.
  */
 export async function getComments(
     { userId, movieId }: { userId?: string; movieId?: string },
     skip: number,
-    limit: number
+    limit: number,
+    reconcileMovieCount = false
 ) {
-    const filter = await buildCommentFilter({ userId, movieId });
+    const { filter, movie } = await buildCommentFilter({ userId, movieId });
+    const [comments, total] = await Promise.all([
+        Comment.find(filter).sort({ date: -1, _id: -1 }).skip(skip).limit(limit),
+        Comment.countDocuments(filter),
+    ]);
 
-    return Comment.find(filter).sort({ date: -1, _id: -1 }).skip(skip).limit(limit);
+    if (
+        reconcileMovieCount
+        && !userId
+        && movie
+        && movie.num_mflix_comments !== total
+    ) {
+        await Movie.updateOne(
+            { _id: movie._id, num_mflix_comments: movie.num_mflix_comments },
+            { $set: { num_mflix_comments: total } }
+        );
+    }
+
+    return { comments, total };
 }
 
 
@@ -64,7 +83,7 @@ export async function getComments(
  */
 export async function getTotalComments(
     { userId, movieId, }: { userId?: string; movieId?: string; }) {
-    const filter = await buildCommentFilter({ userId, movieId });
+    const { filter } = await buildCommentFilter({ userId, movieId });
 
     return Comment.countDocuments(filter);
 }

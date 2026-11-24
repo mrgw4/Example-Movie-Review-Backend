@@ -102,12 +102,14 @@ describe('commentServices', () => {
         it('returns all comments when no filters are provided', async () => {
             const query = mockCommentQuery([commentTestData]);
             mockedComment.find.mockReturnValue(query);
+            mockedComment.countDocuments.mockResolvedValue(1);
 
             const result = await commentServices.getComments({}, 0, 1);
 
             expect(mockedComment.find).toHaveBeenCalledWith({});
             expect(query.sort).toHaveBeenCalledWith({ date: -1, _id: -1 });
-            expect(result).toEqual([commentTestData]);
+            expect(mockedComment.countDocuments).toHaveBeenCalledWith({});
+            expect(result).toEqual({ comments: [commentTestData], total: 1 });
         });
 
         it('returns comments by user ID', async () => {
@@ -118,6 +120,7 @@ describe('commentServices', () => {
             mockedComment.find.mockReturnValue(
                 mockCommentQuery([commentTestData])
             );
+            mockedComment.countDocuments.mockResolvedValue(1);
 
             const result = await commentServices.getComments({
                 userId: userTestData._id,
@@ -129,7 +132,7 @@ describe('commentServices', () => {
                 email: userTestData.email,
             });
 
-            expect(result).toEqual([commentTestData]);
+            expect(result).toEqual({ comments: [commentTestData], total: 1 });
         });
 
         it('throws when the requested user does not exist', async () => {
@@ -152,6 +155,7 @@ describe('commentServices', () => {
             mockedComment.find.mockReturnValue(
                 mockCommentQuery([commentTestData])
             );
+            mockedComment.countDocuments.mockResolvedValue(1);
 
             const result = await commentServices.getComments({
                 movieId: movieTestData._id,
@@ -165,7 +169,7 @@ describe('commentServices', () => {
                 movie_id: movieTestData._id,
             });
 
-            expect(result).toEqual([commentTestData]);
+            expect(result).toEqual({ comments: [commentTestData], total: 1 });
         });
 
         it('throws when the requested movie does not exist', async () => {
@@ -192,6 +196,7 @@ describe('commentServices', () => {
             mockedComment.find.mockReturnValue(
                 mockCommentQuery([commentTestData])
             );
+            mockedComment.countDocuments.mockResolvedValue(1);
 
             const result = await commentServices.getComments({
                 userId: userTestData._id,
@@ -203,7 +208,7 @@ describe('commentServices', () => {
                 movie_id: movieTestData._id,
             });
 
-            expect(result).toEqual([commentTestData]);
+            expect(result).toEqual({ comments: [commentTestData], total: 1 });
         });
 
         it('returns an empty array when the filters match no comments', async () => {
@@ -212,12 +217,13 @@ describe('commentServices', () => {
             );
 
             mockedComment.find.mockReturnValue(mockCommentQuery([]));
+            mockedComment.countDocuments.mockResolvedValue(0);
 
             const result = await commentServices.getComments({
                 movieId: movieTestData._id,
             }, 0, 1);
 
-            expect(result).toEqual([]);
+            expect(result).toEqual({ comments: [], total: 0 });
         });
 
         it('propagates database errors', async () => {
@@ -529,6 +535,111 @@ describe('commentServices', () => {
 
             await expect(
                 commentServices.getTotalComments({})
+            ).rejects.toThrow('Database unavailable');
+        });
+    });
+
+    describe('getComments count reconciliation', () => {
+        it('returns the page and reconciles the movie count from the unfiltered total', async () => {
+            const movieWithCount = { ...movieTestData, num_mflix_comments: 2 };
+            const query = mockCommentQuery([commentTestData]);
+            mockedMovieServices.getMovie.mockResolvedValue(movieWithCount);
+            mockedComment.find.mockReturnValue(query);
+            mockedComment.countDocuments.mockResolvedValue(5);
+            mockedMovie.updateOne.mockResolvedValue({ matchedCount: 1 });
+
+            const result = await commentServices.getComments(
+                { movieId: movieTestData._id },
+                0,
+                20,
+                true
+            );
+
+            expect(result).toEqual({ comments: [commentTestData], total: 5 });
+            expect(mockedMovieServices.getMovie).toHaveBeenCalledTimes(1);
+            expect(mockedComment.countDocuments).toHaveBeenCalledWith({
+                movie_id: movieTestData._id,
+            });
+            expect(mockedMovie.updateOne).toHaveBeenCalledWith(
+                { _id: movieWithCount._id, num_mflix_comments: 2 },
+                { $set: { num_mflix_comments: 5 } }
+            );
+        });
+
+        it('does not update the movie count when the stored count is already correct', async () => {
+            mockedMovieServices.getMovie.mockResolvedValue({
+                ...movieTestData,
+                num_mflix_comments: 1,
+            });
+            mockedComment.find.mockReturnValue(mockCommentQuery([commentTestData]));
+            mockedComment.countDocuments.mockResolvedValue(1);
+
+            await commentServices.getComments(
+                { movieId: movieTestData._id },
+                0,
+                20,
+                true
+            );
+
+            expect(mockedMovie.updateOne).not.toHaveBeenCalled();
+        });
+
+        it('does not reconcile user-filtered comment totals', async () => {
+            mockedUserServices.getUser.mockResolvedValue(userTestData);
+            mockedMovieServices.getMovie.mockResolvedValue({
+                ...movieTestData,
+                num_mflix_comments: 2,
+            });
+            mockedComment.find.mockReturnValue(mockCommentQuery([commentTestData]));
+            mockedComment.countDocuments.mockResolvedValue(1);
+
+            await commentServices.getComments(
+                { userId: userTestData._id, movieId: movieTestData._id },
+                0,
+                20,
+                true
+            );
+
+            expect(mockedComment.countDocuments).toHaveBeenCalledWith({
+                email: userTestData.email,
+                movie_id: movieTestData._id,
+            });
+            expect(mockedMovie.updateOne).not.toHaveBeenCalled();
+        });
+
+        it('does not reconcile when no reconciliation option is provided', async () => {
+            mockedMovieServices.getMovie.mockResolvedValue({
+                ...movieTestData,
+                num_mflix_comments: 2,
+            });
+            mockedComment.find.mockReturnValue(mockCommentQuery([commentTestData]));
+            mockedComment.countDocuments.mockResolvedValue(1);
+
+            await commentServices.getComments(
+                { movieId: movieTestData._id },
+                20,
+                20
+            );
+
+            expect(mockedMovie.updateOne).not.toHaveBeenCalled();
+        });
+
+        it('propagates errors while reconciling the movie count', async () => {
+            mockedMovieServices.getMovie.mockResolvedValue({
+                ...movieTestData,
+                num_mflix_comments: 2,
+            });
+            mockedComment.find.mockReturnValue(mockCommentQuery([commentTestData]));
+            mockedComment.countDocuments.mockResolvedValue(1);
+            mockedMovie.updateOne.mockRejectedValue(new Error('Database unavailable'));
+
+            await expect(
+                commentServices.getComments(
+                    { movieId: movieTestData._id },
+                    0,
+                    20,
+                    true
+                )
             ).rejects.toThrow('Database unavailable');
         });
     });

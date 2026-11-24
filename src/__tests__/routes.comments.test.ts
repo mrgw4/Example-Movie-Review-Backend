@@ -47,9 +47,10 @@ describe('Comment routes', () => {
     });
     describe('Get api/comments/', () => {
         it('returns 200 with paginated comments filtered by movie', async () => {
-            mockedCommentServices.getComments.mockResolvedValue([commentTestData] as any);
-
-            mockedCommentServices.getTotalComments.mockResolvedValue(1);
+            mockedCommentServices.getComments.mockResolvedValue({
+                comments: [commentTestData] as any,
+                total: 1,
+            });
 
             const response = await request(app)
                 .get('/api/comments')
@@ -79,23 +80,16 @@ describe('Comment routes', () => {
                     movieId: commentTestData.movie_id,
                 },
                 0,
-                20
+                20,
+                true
             );
-
-            expect(
-                mockedCommentServices.getTotalComments
-            ).toHaveBeenCalledWith({
-                userId: undefined,
-                movieId: commentTestData.movie_id,
-            });
         });
 
         it('returns 200 with comments filtered by user', async () => {
-            mockedCommentServices.getComments.mockResolvedValue(
-                [commentTestData] as any
-            );
-
-            mockedCommentServices.getTotalComments.mockResolvedValue(1);
+            mockedCommentServices.getComments.mockResolvedValue({
+                comments: [commentTestData] as any,
+                total: 1,
+            });
 
             const response = await request(app)
                 .get('/api/comments')
@@ -113,21 +107,16 @@ describe('Comment routes', () => {
                     movieId: undefined,
                 },
                 0,
-                20
+                20,
+                false
             );
-
-            expect(
-                mockedCommentServices.getTotalComments
-            ).toHaveBeenCalledWith({
-                userId: validId,
-                movieId: undefined,
-            });
         });
 
         it('passes both user and movie filters to the services', async () => {
-            mockedCommentServices.getComments.mockResolvedValue([commentTestData] as any);
-
-            mockedCommentServices.getTotalComments.mockResolvedValue(1);
+            mockedCommentServices.getComments.mockResolvedValue({
+                comments: [commentTestData] as any,
+                total: 1,
+            });
 
             const response = await request(app)
                 .get('/api/comments')
@@ -146,21 +135,16 @@ describe('Comment routes', () => {
                     movieId: commentTestData.movie_id,
                 },
                 0,
-                20
+                20,
+                false
             );
-
-            expect(
-                mockedCommentServices.getTotalComments
-            ).toHaveBeenCalledWith({
-                userId: validId,
-                movieId: commentTestData.movie_id,
-            });
         });
 
         it('passes pagination values to the services', async () => {
-            mockedCommentServices.getComments.mockResolvedValue([commentTestData] as any);
-
-            mockedCommentServices.getTotalComments.mockResolvedValue(45);
+            mockedCommentServices.getComments.mockResolvedValue({
+                comments: [commentTestData] as any,
+                total: 45,
+            });
 
             const response = await request(app)
                 .get('/api/comments')
@@ -180,7 +164,8 @@ describe('Comment routes', () => {
                     movieId: commentTestData.movie_id,
                 },
                 20,
-                20
+                20,
+                false
             );
 
             expect(response.body.pagination).toEqual({
@@ -205,10 +190,6 @@ describe('Comment routes', () => {
 
             expect(
                 mockedCommentServices.getComments
-            ).not.toHaveBeenCalled();
-
-            expect(
-                mockedCommentServices.getTotalComments
             ).not.toHaveBeenCalled();
         });
 
@@ -290,24 +271,8 @@ describe('Comment routes', () => {
             });
         });
 
-        it('returns 503 when getComments throws a connect error', async () => {
+        it('returns 503 when the comment page service throws a connect error', async () => {
             mockedCommentServices.getComments.mockRejectedValue(
-                new Error('connect ECONNREFUSED')
-            );
-
-            const response = await request(app)
-                .get('/api/comments')
-                .query({
-                    movieId: validId,
-                });
-
-            expect(response.status).toBe(503);
-        });
-
-        it('returns 503 when getTotalComments throws a connect error', async () => {
-            mockedCommentServices.getComments.mockResolvedValue([commentTestData] as any);
-
-            mockedCommentServices.getTotalComments.mockRejectedValue(
                 new Error('connect ECONNREFUSED')
             );
 

@@ -52,9 +52,12 @@ router.get('/', async (req: Request, res: Response) => {
 
     const skip = (query.page - 1) * query.limit;
 
-    const comments = await comment.getComments({ userId: query.userId, movieId: query.movieId }, skip, query.limit);
-
-    const total = await comment.getTotalComments({ userId: query.userId, movieId: query.movieId });
+    const { comments, total } = await comment.getComments(
+      { userId: query.userId, movieId: query.movieId },
+      skip,
+      query.limit,
+      Boolean(query.movieId && !query.userId && query.page === 1)
+    );
 
     const totalPages = Math.ceil(total / query.limit);
 
